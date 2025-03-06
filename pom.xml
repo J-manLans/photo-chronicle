@@ -47,7 +47,7 @@
                             <transformers>
                                 <!-- Transformer to specify the main class in the manifest -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.dt042g.photo-chronicle.Main</mainClass>
+                                    <mainClass>com.dt042g.photochronicle.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <!-- Filters to exclude specific files from the shaded JAR -->
@@ -109,7 +109,7 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>3.5.0</version>
                         <configuration>
-                            <mainClass>com.dt042g.photo-chronicle.Main</mainClass>
+                            <mainClass>com.dt042g.photochronicle.Main</mainClass>
                             <arguments>
                                 <argument>argument1</argument>
                             </arguments>

@@ -3,7 +3,7 @@ package com.dt042g.photochronicle;
 import com.dt042g.photochronicle.controller.ChronicleController;
 
 /**
- * The entry point for the {@link ChronicleController} application.
+ * The entry point for the PhotoChronicle application.
  * @author Joel Lansgren
  */
 public final class Main {
