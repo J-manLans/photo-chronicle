@@ -19,7 +19,7 @@ try {
 
     if (directory != null) {
         // Extracts the original date the image was taken.
-        Date date = directory.getDate(0);
+        Date date = directory.getDateOriginal();
         // Format the date to a standardized format for easy parsing or display.
         // The 'T' in the format distinguishes the date and time when iterating over the string.
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
