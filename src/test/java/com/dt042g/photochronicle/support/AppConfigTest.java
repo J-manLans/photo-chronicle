@@ -13,6 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+/**
+ * Unit tests which use reflection for the AppConfig class to verify its integrity to expected design principles.
+ *
+ * <p>These tests focus on checking the visibility and modifiers of the AppConfig class its constructor and variables,
+ * ensuring that the class is properly structured according to best practices for utility classes.</p>
+ *
+ * @author Joel Lansgren
+ */
 public class AppConfigTest {
 
     /*============================
