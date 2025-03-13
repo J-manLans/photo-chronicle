@@ -16,4 +16,13 @@ public final class AppConfig {
     private AppConfig() { // Private constructor to prevent instantiation.
         throw new IllegalStateException("Utility class");
     }
+
+    /*=========================
+    * View
+    =========================*/
+
+    /* ===== Numbers ===== */
+
+    /** An integer that defines hgap or vgap  between components in a panel that has FlowLayout. */
+    public static final int FLOW_GAP = 15;
 }
