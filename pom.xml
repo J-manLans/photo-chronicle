@@ -82,6 +82,12 @@
             <version>5.12.0</version>
             <scope>test</scope>
         </dependency>
+         <dependency><!-- JUnit Jupiter extension for running parameterized tests -->
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.12.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency><!-- Dependency for extracting meta data from images -->
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
