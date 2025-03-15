@@ -1,5 +1,7 @@
 package com.dt042g.photochronicle;
 
+import javax.swing.SwingUtilities;
+
 import com.dt042g.photochronicle.controller.ChronicleController;
 
 /**
@@ -12,10 +14,10 @@ public final class Main {
     }
 
     /**
-     * Instantiates and initializes the {@link ChronicleController}.
+     * Instantiates the {@link ChronicleController}.
      * @param args command arguments (not used for this application).
      */
     public static void main(final String... args) {
-        new ChronicleController().initialize();
+        SwingUtilities.invokeLater(() -> new ChronicleController());
     }
 }
