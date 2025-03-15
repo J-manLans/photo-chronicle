@@ -38,5 +38,5 @@ public final class AppConfig {
      * The dimension of the app.
      * <p>width: 900, height: 600</p>
      */
-    public static final Dimension APP_DIMENSION = new Dimension(900, 601);
+    public static final Dimension APP_DIMENSION = new Dimension(900, 600);
 }
