@@ -1,6 +1,7 @@
 package com.dt042g.photochronicle.support;
 
 import java.awt.Dimension;
+
 /**
  * A utility class that provides configuration constants for the photo chronicler application.
  *
@@ -10,7 +11,7 @@ import java.awt.Dimension;
  *
  * <p>The {@link AppConfig} class cannot be instantiated, as it is intended purely for static use.</p>
  *
- * @author Joel Lansgren
+ * @author Joel Lansgren, Daniel Berg
  */
 public final class AppConfig {
 
@@ -31,6 +32,10 @@ public final class AppConfig {
 
     /** An integer that defines hgap or vgap  between components in a panel that has FlowLayout. */
     public static final int FLOW_GAP = 15;
+
+
+    /** An integer that defines the size of the title text. */
+    public static final int TEXT_SIZE_TITLE = 28;
 
     /* ===== Dimensions ===== */
 
