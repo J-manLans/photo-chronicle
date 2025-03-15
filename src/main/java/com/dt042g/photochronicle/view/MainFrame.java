@@ -38,8 +38,4 @@ public final class MainFrame extends JFrame {
         pack();
         setLocationRelativeTo(null);
     }
-
-    MainFrame getMainFrame() {
-        return this;
-    }
 }
