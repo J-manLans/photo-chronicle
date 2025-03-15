@@ -6,6 +6,8 @@
 
 - **`git reset --hard origin/main`**: This command **resets  the local `main` branch** to exactly match the remote `main` (overwriting any local changes in the process). This ensures that the local `main` is in sync with the remote and reflects the latest state of the code.
 
+If you feel frisky you can also just try a `git pull` `:)`.
+
 ---
 
 # Manually Merging a Pull Request
