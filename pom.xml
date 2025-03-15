@@ -127,6 +127,7 @@
                         <version>3.6.0</version>
                         <configuration>
                             <configLocation>_RepoResources/checkstyle.xml</configLocation>
+                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <consoleOutput>true</consoleOutput>
                         </configuration>
                     </plugin>
