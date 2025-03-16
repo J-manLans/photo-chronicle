@@ -23,7 +23,7 @@ import com.dt042g.photochronicle.support.AppConfig;
  * @author Daniel Berg
  */
 public class TopPanelTest {
-    final TopPanel topPanel = new TopPanel();
+    private final TopPanel topPanel = new TopPanel();
 
     /**
      * Test to ensure that the class has been marked as final, preventing it to be subclassed.
@@ -95,7 +95,7 @@ public class TopPanelTest {
     }
 
     /**
-     * Test to ensure that the title instance field has public access modifier.
+     * Test to ensure that the title instance field has private access modifier.
      * @throws NoSuchFieldException if the title instance field is not present.
      */
     @Test
