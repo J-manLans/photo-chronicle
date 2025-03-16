@@ -58,7 +58,11 @@ public final class MiddlePanel extends JPanel {
             new Dimension(AppConfig.FOLDER_PATH_WIDTH, (int) addAndSortBtn.getPreferredSize().getHeight())
         );
 
-        // Adds components to view
+        // Sets up the fileChooser
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setDialogTitle("Pick an image folder");
+
+        // Adds components to panels
         labelAndClearBtnWrapper.add(pathLabel);
         labelAndClearBtnWrapper.add(clearBtn);
         add(labelAndClearBtnWrapper, gbc);

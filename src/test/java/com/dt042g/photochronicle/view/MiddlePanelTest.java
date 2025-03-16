@@ -3,7 +3,6 @@ package com.dt042g.photochronicle.view;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
@@ -13,6 +12,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -24,11 +24,19 @@ import javax.swing.SwingUtilities;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
+/**
+ * Unit tests for the {@link MiddlePanel} class in the {@link com.dt042g.photochronicle.view} package.
+ * These tests will verify the integrity of the {@link MiddlePanel} class, focusing on its layout,
+ * UI components, field accessibility, and constructor.
+ * @author Joel Lansgren
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MiddlePanelTest {
     private MiddlePanel middlePanel;
-    Class<?> middlePanelClass;
+    private Class<?> middlePanelClass;
 
     @BeforeAll
     private void setup() throws InvocationTargetException, InterruptedException {
@@ -39,6 +47,16 @@ public class MiddlePanelTest {
     }
 
     /**
+     * Validates that all instance variables are instantiated.
+     * @param fieldName
+     */
+    @ParameterizedTest
+    @MethodSource("provideClassFields")
+    void shouldHaveInitializedFields(final String fieldName) {
+        assertNotNull(getFieldValue(fieldName));
+    }
+
+    /**
      * Validates that the MiddlePanel has a GridBagLayout.
      */
     @Test
@@ -46,34 +64,122 @@ public class MiddlePanelTest {
         assertEquals(GridBagLayout.class, middlePanel.getLayout().getClass());
     }
 
+    /**
+     * Validates that the class contains one panel.
+     */
     @Test
-    void shouldPassIfAPanelIsAddedToTheMiddlePanel() {
+    void shouldPassIfMiddlePanelContainsOnePanel() {
+        final Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
+        assertEquals(1, componentCounts.get(JPanel.class));
+    }
+
+    /**
+     * Validates that the class contains one label.
+     */
+    @Test
+    void shouldPassIfMiddlePanelContainsOneLabel() {
+        final Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
+        assertEquals(1, componentCounts.get(JLabel.class));
+    }
+
+    /**
+     * Validates that the class contains two buttons.
+     */
+    @Test
+    void shouldPassIfMiddlePanelContainsTwoButtons() {
+        final Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
+        assertEquals(2, componentCounts.get(JButton.class));
+    }
+
+    /**
+     * Validates that the class contains one file chooser.
+     */
+    @Test
+    void shouldPassIfMiddlePanelContainsOneFileChooser() {
+        final Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
+        assertEquals(1, componentCounts.get(JFileChooser.class));
+    }
+
+    /**
+     * Tests if a JPanel is added to the MiddlePanel.
+     */
+    @Test
+    void shouldPassIfAJPanelIsAddedToTheMiddlePanel() {
         assertEquals(1, provideAddedComponentsCount(middlePanel, JPanel.class));
     }
 
+    /**
+     * Verifies that the wrapper panel has a FlowLayout.
+     */
     @Test
-    void shouldPassIfALabelIsAddedToTheWrapperPanel() throws NoSuchFieldException, IllegalAccessException {
-        assertEquals(1, provideAddedComponentsCount(provideFieldWrapperPanel(), JLabel.class));
+    void shouldPassIfWrapperPanelHasFlowLayout() {
+        assertEquals(
+            FlowLayout.class,
+            ((JPanel) getFieldValue("labelAndClearBtnWrapper")).getLayout().getClass()
+        );
     }
 
+    /**
+     * Verifies that the wrapper panel has a JLabel.
+     */
     @Test
-    void shouldPassIfAButtonIsAddedToTheWrapperPanel() throws NoSuchFieldException, IllegalAccessException {
-        assertEquals(1, provideAddedComponentsCount(provideFieldWrapperPanel(), JButton.class));
+    void shouldPassIfAJLabelIsAddedToTheWrapperPanel() {
+        assertEquals(1, provideAddedComponentsCount(
+            (JPanel) getFieldValue("labelAndClearBtnWrapper"),
+                JLabel.class
+        ));
     }
 
+    /**
+     * Verifies that the wrapper panel has a JButton.
+     */
     @Test
-    void shouldPassIfWrapperPanelHasFlowLayout() throws IllegalAccessException, NoSuchFieldException {
-        assertEquals(FlowLayout.class, provideFieldWrapperPanel().getLayout().getClass());
+    void shouldPassIfAJButtonIsAddedToTheWrapperPanel() {
+        assertEquals(1, provideAddedComponentsCount(
+            (JPanel) getFieldValue("labelAndClearBtnWrapper"),
+            JButton.class
+        ));
     }
 
+    /**
+     * Tests if a JButton is added to the MiddlePanel.
+     */
     @Test
-    void shouldPassIfAButtonIsAddedToTheMiddlePanel() {
+    void shouldPassIfAJButtonIsAddedToTheMiddlePanel() {
         assertEquals(1, provideAddedComponentsCount(middlePanel, JButton.class));
+    }
+
+    /**
+     * Validates that the fileChooser only displays folders in its dialog.
+     */
+    @Test
+    void shouldPassIfJFileChooserOnlyDisplaysFolders() {
+        assertEquals(
+            JFileChooser.DIRECTORIES_ONLY,
+            ((JFileChooser) getFieldValue("fileChooser")).getFileSelectionMode()
+        );
     }
 
     /*============================
     * Design Integrity Tests
     ============================*/
+
+    /**
+     * Verifies that MiddlePanel only have one constructor.
+     */
+    @Test
+    void shouldPassIfMiddlePanelHasOneConstructor() {
+        assertTrue(1 == middlePanelClass.getDeclaredConstructors().length);
+    }
+
+    /**
+     * Verifies that the constructor is public.
+     * @throws NoSuchMethodException if the constructor is not found in the MiddlePanel class.
+     */
+    @Test
+    void shouldPassIfConstructorModifierIsPublic() throws NoSuchMethodException {
+        assertTrue(Modifier.isPublic(middlePanelClass.getDeclaredConstructor().getModifiers()));
+    }
 
     /**
      * Validates that the class is final.
@@ -92,77 +198,14 @@ public class MiddlePanelTest {
     }
 
     /**
-     * Verifies that MiddlePanel only have one constructor.
+     * Verifies that all instance fields are private.
+     * @param fieldName
+     * @throws NoSuchFieldException if the field is not present.
      */
-    @Test
-    void shouldPassIfMiddlePanelHasOneConstructor() {
-        assertTrue(1 == middlePanelClass.getDeclaredConstructors().length);
-    }
-
-    /**
-     * Verifies that the constructor is public.
-     * @throws SecurityException if the security manager blocks access to the method.
-     * @throws NoSuchMethodException if the constructor is not found in the MiddlePanel class.
-     */
-    @Test
-    void shouldPassIfConstructorModifierIsPublic() throws NoSuchMethodException, SecurityException  {
-        assertTrue(Modifier.isPublic(middlePanelClass.getDeclaredConstructor().getModifiers()));
-    }
-
-    /**
-     * Validates that all instance variables are instantiated.
-     */
-    @Test
-    void shouldPassIfAllFieldsAreInstantiated() {
-        Field[] fields = middlePanelClass.getDeclaredFields();
-
-        for (Field field : fields) {
-            field.setAccessible(true);
-
-            try {
-                Object fieldValue = field.get(middlePanel);
-                assertNotNull(fieldValue);
-            } catch (IllegalArgumentException | IllegalAccessException e) {
-                // Fails the test if one exception occur.
-                fail("\nError accessing field " + field.getName() + ":\n" + e.getClass() + "\n" + e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Validates that the class contains two buttons.
-     */
-    @Test
-    void shouldPassIfClassContainsTwoButtons() {
-        Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
-        assertEquals(2, componentCounts.get(JButton.class));
-    }
-
-    /**
-     * Validates that the class contains one label.
-     */
-    @Test
-    void shouldPassIfClassContainsOneLabel() {
-        Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
-        assertEquals(1, componentCounts.get(JLabel.class));
-    }
-
-    /**
-     * Validates that the class contains one panel.
-     */
-    @Test
-    void shouldPassIfClassContainsOnePanel() {
-        Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
-        assertEquals(1, componentCounts.get(JPanel.class));
-    }
-
-    /**
-     * Validates that the class contains one file chooser.
-     */
-    @Test
-    void shouldPassIfClassContainsOneFileChooser() {
-        Map<Class<?>, Long> componentCounts = provideMapOfAllUIComponents();
-        assertEquals(1, componentCounts.get(JFileChooser.class));
+    @ParameterizedTest
+    @MethodSource("provideClassFields")
+    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
+        assertTrue(Modifier.isPrivate(middlePanelClass.getDeclaredField(fieldName).getModifiers()));
     }
 
     /*============================
@@ -171,7 +214,7 @@ public class MiddlePanelTest {
 
     /**
      * Creates a stream from the fields array and filters out the variables that extend
-     * {@link JComponent}. The {@code groupingBy} method that returns a map is then used
+     * {@link JComponent}. The {@code groupingBy} method that produces a map is then used
      * to group the fields by their type, counting how many times each unique type occurs
      * in the instance fields.
      * @return A map where the key is a class that extends {@link JComponent},
@@ -186,15 +229,30 @@ public class MiddlePanelTest {
         ));
     }
 
-    private Long provideAddedComponentsCount(JPanel panel, Class<?> uiComponent) {
+    private Stream<String> provideClassFields() {
+        return Arrays.stream(middlePanelClass.getDeclaredFields())
+        .map(Field::getName);
+    }
+
+    /**
+     * Counts the occurrences of a specific UI component type within a given JPanel.
+     * @param panel The JPanel in which to count the occurrences of the specified component type.
+     * @param uiComponent The class of the UI component to count.
+     * @return The number of components in the panel that are instances of the specified class.
+     */
+    private long provideAddedComponentsCount(final JPanel panel, final Class<?> uiComponent) {
         return  Arrays.stream(panel.getComponents())
         .filter(component ->  uiComponent.isInstance(component))
         .count();
     }
 
-    private JPanel provideFieldWrapperPanel() throws IllegalAccessException, NoSuchFieldException {
-        Field field = middlePanelClass.getDeclaredField("labelAndClearBtnWrapper");
-        field.setAccessible(true);
-        return (JPanel) field.get(middlePanel);
+    private Object getFieldValue(final String fieldName)  {
+        try {
+            final Field field = middlePanelClass.getDeclaredField(fieldName); // Get the field
+            field.setAccessible(true); // Allow access to private/final fields
+            return field.get(middlePanel); // Get the object from the field
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException("Failed to access field: " + fieldName, e);
+        }
     }
 }

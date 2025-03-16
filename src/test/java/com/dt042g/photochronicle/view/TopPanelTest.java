@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Daniel Berg
  */
 public class TopPanelTest {
-    final TopPanel topPanel = new TopPanel();
+    private final TopPanel topPanel = new TopPanel();
 
     /**
      * Test to ensure that the class has been marked as final, preventing it to be subclassed.
