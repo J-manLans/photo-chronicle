@@ -1,18 +1,20 @@
 package com.dt042g.photochronicle.view;
 
-import com.dt042g.photochronicle.support.AppConfig;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.swing.JLabel;
 import java.awt.FlowLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import javax.swing.JLabel;
+
+import org.junit.jupiter.api.Test;
+
+import com.dt042g.photochronicle.support.AppConfig;
 
 /**
  * Unit tests for the {@link TopPanel} class in the {@link com.dt042g.photochronicle.view} package.
