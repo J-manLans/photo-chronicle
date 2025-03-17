@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -204,6 +206,22 @@ public final class InfoDialogTest {
     }
 
     /**
+     * Checks that the infoMessage label is added to the info panel.
+     */
+    @Test
+    void shouldPassIfInfoPanelContainsInfoMessage() {
+        assertSame(getComponent("infoMessage"), (JLabel) getComponentFromInfoPanel(JLabel.class));
+    }
+
+    /**
+     * Checks that the infoCloseBtn is added to the info panel.
+     */
+    @Test
+    void shouldPassIfInfoPanelContainsInfoCloseBtn() {
+        assertSame(getComponent("infoCloseBtn"), (JButton) getComponentFromInfoPanel(JButton.class));
+    }
+
+    /**
      * Checks that the infoDialogPanel is added to the info dialog.
      */
     @Test
@@ -224,17 +242,37 @@ public final class InfoDialogTest {
      */
     @Test
     void shouldOpenDialogWhenInfoButtonIsPressed()
-        throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        SwingUtilities.invokeAndWait(() -> controller.initializeListeners());
-
-        final BottomPanel bottomPanel = controller.getBottomPanel();
-        final Field field = bottomPanel.getClass().getDeclaredField("infoButton");
-        field.setAccessible(true);
-        final JButton infoButton = (JButton) field.get(bottomPanel);
-
-        infoButton.doClick();
-
+    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        clickInfoButton();
         assertTrue(infoDialog.isVisible());
+    }
+
+    /**
+     * Tests that the dialog opens up in the center of the MainFrame.
+     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
+     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
+     * @throws NoSuchFieldException if the infoButton instance field is not present.
+     * @throws IllegalAccessException if the {@link Field} access is illegal.
+     */
+    @Test
+    void shouldPassIfDialogOpensUpInCenterOfApp()
+    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        clickInfoButton();
+
+        final Point mainFrameTopLeftPoint = infoDialog.getOwner().getLocationOnScreen();
+
+        final int frameWidth = infoDialog.getOwner().getWidth();
+        final int frameHeight = infoDialog.getOwner().getHeight();
+
+        final int dialogWidth =  infoDialog.getWidth();
+        final int dialogHeight =  infoDialog.getHeight();
+
+        final Point expectedTopLeftPoint = new Point(
+            Math.round(mainFrameTopLeftPoint.x + ((frameWidth - dialogWidth) / 2)),
+            Math.round(mainFrameTopLeftPoint.y + ((frameHeight - dialogHeight) / 2))
+        );
+
+        assertEquals(expectedTopLeftPoint, infoDialog.getLocationOnScreen());
     }
 
     /*======================
@@ -262,5 +300,25 @@ public final class InfoDialogTest {
         } catch (final IllegalAccessException e) {
             throw new IllegalStateException("Failed to access field: " + fieldName, e);
         }
+    }
+
+    private Component getComponentFromInfoPanel(final Class<?> clazz) {
+        return Arrays.stream(((JPanel) getComponent("infoDialogPanel")).getComponents())
+        .filter(component -> component.getClass() == clazz)
+        .findFirst()
+        .orElse(null);
+    }
+
+    private void clickInfoButton()
+    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        final BottomPanel bottomPanel = controller.getBottomPanel();
+        final Field field = bottomPanel.getClass().getDeclaredField("infoButton");
+        field.setAccessible(true);
+        final JButton infoButton = (JButton) field.get(bottomPanel);
+
+        SwingUtilities.invokeAndWait(() -> {
+            controller.initialize();
+            infoButton.doClick();
+        });
     }
 }
