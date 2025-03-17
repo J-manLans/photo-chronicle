@@ -8,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
@@ -154,14 +153,29 @@ public class MainFrameTest {
     }
 
     /**
-     * Checks that the correct panel have been added to the correct position.
+     * Checks that the topPanel have been added to the correct position.
      */
     @Test
-    void shouldPassIfAllPanelsAreInTheirRightPositions() {
+    void shouldPassIfTopPanelIsInRightPosition() {
         BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
-
         assertSame(topPanel, borderLayout.getLayoutComponent(BorderLayout.NORTH));
+    }
+
+    /**
+     * Checks that the middlePanel have been added to the correct position.
+     */
+    @Test
+    void shouldPassIfMiddlePanelIsInRightPosition() {
+        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
         assertSame(middlePanel, borderLayout.getLayoutComponent(BorderLayout.CENTER));
+    }
+
+    /**
+     * Checks that the bottomPanel have been added to the correct position.
+     */
+    @Test
+    void shouldPassIfBottomPanelIsInRightPosition() {
+        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
         assertSame(bottomPanel, borderLayout.getLayoutComponent(BorderLayout.SOUTH));
     }
 
@@ -171,8 +185,6 @@ public class MainFrameTest {
 
     /**
      * Verifies that the MainFrame class is final using reflection.
-     * This ensures that the class cannot be subclassed.
-     * @throws ClassNotFoundException if the class cannot be found via reflection.
      */
     @Test
     void shouldPassIfClassIsFinal() {
@@ -180,17 +192,28 @@ public class MainFrameTest {
     }
 
     /**
-     * Verifies that MainFrame's constructor is public.
-     * This ensures that the class can be instantiated.
-     * @throws SecurityException if the security manager blocks access to the method.
-     * @throws NoSuchMethodException if the constructor is not found in the MainFrame class.
+     * Verifies that the MainFrame class is public using reflection.
      */
     @Test
-    void shouldPassIfConstructorModifierIsPublic() throws NoSuchMethodException, SecurityException {
-        Constructor<?>[] constructors = mainFrameClass.getDeclaredConstructors();
+    void shouldPassIfClassIsPublic() {
+        assertTrue(Modifier.isPublic(mainFrameClass.getModifiers()));
+    }
 
-        assertTrue(constructors.length == 1); // Assures there is only one constructor.
-        assertTrue(Modifier.isPublic(constructors[0].getModifiers()));
+    /**
+     * Verifies that MainFrame only has one constructor.
+     */
+    @Test
+    void shouldPassIfMainFrameOnlyHasOneConstructor() {
+        assertTrue(mainFrameClass.getDeclaredConstructors().length == 1);
+    }
+
+    /**
+     * Verifies that MainFrame's constructor is public.
+     * This ensures that the class can be instantiated.
+     */
+    @Test
+    void shouldPassIfConstructorModifierIsPublic(){
+        assertTrue(Modifier.isPublic(mainFrameClass.getDeclaredConstructors()[0].getModifiers()));
     }
 
     /**
@@ -201,9 +224,6 @@ public class MainFrameTest {
     @Test
     void shouldPassIfConstructorParametersEqualsComponentCount() {
         int addedComponents = mainFrame.getContentPane().getComponentCount();
-        Constructor<?>[] constructors = mainFrameClass.getDeclaredConstructors();
-
-        assertTrue(constructors.length == 1); // Assures there is only one constructor.
-        assertEquals(constructors[0].getParameterCount(), addedComponents);
+        assertEquals(mainFrameClass.getDeclaredConstructors()[0].getParameterCount(), addedComponents);
     }
 }

@@ -1,18 +1,20 @@
 package com.dt042g.photochronicle.view;
 
-import com.dt042g.photochronicle.support.AppConfig;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.swing.JLabel;
 import java.awt.FlowLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import javax.swing.JLabel;
+
+import org.junit.jupiter.api.Test;
+
+import com.dt042g.photochronicle.support.AppConfig;
 
 /**
  * Unit tests for the {@link TopPanel} class in the {@link com.dt042g.photochronicle.view} package.
@@ -21,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Daniel Berg
  */
 public class TopPanelTest {
-    final TopPanel topPanel = new TopPanel();
+    private final TopPanel topPanel = new TopPanel();
 
     /**
      * Test to ensure that the class has been marked as final, preventing it to be subclassed.
@@ -93,7 +95,7 @@ public class TopPanelTest {
     }
 
     /**
-     * Test to ensure that the title instance field has public access modifier.
+     * Test to ensure that the title instance field has private access modifier.
      * @throws NoSuchFieldException if the title instance field is not present.
      */
     @Test
