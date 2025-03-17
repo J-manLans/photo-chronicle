@@ -44,6 +44,7 @@ public final class ChronicleController {
             infoDialog.setLocationRelativeTo(infoDialog.getOwner());
             infoDialog.setVisible(true);
         });
+        infoDialog.addInfoCloseBtnListener(e -> infoDialog.setVisible(false));
     }
 
     /*=====================

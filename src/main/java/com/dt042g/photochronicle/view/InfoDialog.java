@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -14,6 +15,13 @@ import javax.swing.border.LineBorder;
 
 import com.dt042g.photochronicle.support.AppConfig;
 
+/**
+ * A modal dialog displaying static informational content to the user.
+ *
+ * <p>This dialog appears centered relative to the main application window and prevents
+ * interaction with the main frame while open. It contains a message label and a close button.</p>
+ * @author Joel Lansgren
+ */
 public final class InfoDialog extends JDialog {
     private final GridBagConstraints gbc = new GridBagConstraints();
     private final JPanel infoDialogPanel = new JPanel(new GridBagLayout());
@@ -53,6 +61,14 @@ public final class InfoDialog extends JDialog {
         infoDialogPanel.add(infoCloseBtn, gbc);
 
         add(infoDialogPanel);
+    }
+
+    /**
+     * Adds a listener that closes the dialog to the infoCloseBtn.
+     * @param listener the listener that will be attached to the button.
+     */
+    public void addInfoCloseBtnListener(final ActionListener listener) {
+        infoCloseBtn.addActionListener(listener);
     }
 }
 

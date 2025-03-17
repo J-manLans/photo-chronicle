@@ -1,6 +1,7 @@
 package com.dt042g.photochronicle.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,6 +36,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import com.dt042g.photochronicle.controller.ChronicleController;
 import com.dt042g.photochronicle.support.AppConfig;
 
+/**
+ * Unit tests for {@link InfoDialog}, ensuring design integrity, component verification,
+ * and event handling correctness.
+ * @author Joel Lansgren
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public final class InfoDialogTest {
     private ChronicleController controller;
@@ -230,7 +236,7 @@ public final class InfoDialogTest {
     }
 
     /*======================
-    * Unit Tests
+    * Event Tests
     ======================*/
 
     /**
@@ -243,8 +249,9 @@ public final class InfoDialogTest {
     @Test
     void shouldOpenDialogWhenInfoButtonIsPressed()
     throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        clickInfoButton();
+        clickInfoButton(controller::initializeListeners);
         assertTrue(infoDialog.isVisible());
+        SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
     }
 
     /**
@@ -257,7 +264,7 @@ public final class InfoDialogTest {
     @Test
     void shouldPassIfDialogOpensUpInCenterOfApp()
     throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        clickInfoButton();
+        clickInfoButton(controller::initialize);
 
         final Point mainFrameTopLeftPoint = infoDialog.getOwner().getLocationOnScreen();
 
@@ -273,6 +280,33 @@ public final class InfoDialogTest {
         );
 
         assertEquals(expectedTopLeftPoint, infoDialog.getLocationOnScreen());
+        SwingUtilities.invokeAndWait(() -> {
+            infoDialog.setVisible(false);
+            infoDialog.getOwner().setVisible(false);
+        });
+    }
+
+    /**
+     * Tests that the dialog is closed when the infoCloseBtn is clicked.
+     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
+     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
+     * @throws NoSuchFieldException if the infoButton instance field is not present.
+     * @throws IllegalAccessException if the {@link Field} access is illegal.
+     */
+    @Test
+    void shouldPassIfDialogIsClosedWhenCloseBtnIsClicked()
+    throws InvocationTargetException, NoSuchFieldException, IllegalAccessException, InterruptedException {
+        JButton infoCloseBtn = (JButton) getComponent("infoCloseBtn");
+        boolean isVisible = true;
+        clickInfoButton(controller::initializeListeners);
+
+        if (infoDialog.isVisible()) {
+            SwingUtilities.invokeAndWait(() -> infoCloseBtn.doClick());
+            isVisible  = infoDialog.isVisible();
+        }
+
+        assertFalse(isVisible);
+        SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
     }
 
     /*======================
@@ -309,7 +343,7 @@ public final class InfoDialogTest {
         .orElse(null);
     }
 
-    private void clickInfoButton()
+    private void clickInfoButton(final Runnable action)
     throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         final BottomPanel bottomPanel = controller.getBottomPanel();
         final Field field = bottomPanel.getClass().getDeclaredField("infoButton");
@@ -317,7 +351,7 @@ public final class InfoDialogTest {
         final JButton infoButton = (JButton) field.get(bottomPanel);
 
         SwingUtilities.invokeAndWait(() -> {
-            controller.initialize();
+            action.run();
             infoButton.doClick();
         });
     }
