@@ -1,26 +1,37 @@
 package com.dt042g.photochronicle.controller;
 
 import com.dt042g.photochronicle.view.BottomPanel;
+import com.dt042g.photochronicle.view.InfoDialog;
 import com.dt042g.photochronicle.view.MainFrame;
 import com.dt042g.photochronicle.view.MiddlePanel;
 import com.dt042g.photochronicle.view.TopPanel;
 
-public class ChronicleController {
+/**
+ * @author Joel Lansgren
+ */
+public final class ChronicleController {
     private final TopPanel topPanel;
     private final MiddlePanel middlePanel;
     private final BottomPanel bottomPanel;
     private final MainFrame mainFrame;
+    private final InfoDialog infoDialog;
 
     /**
      * Constructs the controller and instantiates all views and models that's part of the MVC pattern.
-     * Then sets the {@link MainFrame} to visible.
      */
     public ChronicleController() {
         topPanel = new TopPanel();
         middlePanel = new MiddlePanel();
         bottomPanel = new BottomPanel();
         mainFrame = new MainFrame(topPanel, middlePanel, bottomPanel);
+        infoDialog = new InfoDialog(mainFrame);
+    }
 
+    /**
+     * Initializes different parts off the application,
+     * then sets the {@link MainFrame} to visible.
+     */
+    public void initialize() {
         mainFrame.setVisible(true);
     }
 
@@ -58,5 +69,13 @@ public class ChronicleController {
      */
     public BottomPanel getBottomPanel() {
         return bottomPanel;
+    }
+
+    /**
+     * Returns the InfoDialog so test classes can set up test environments.
+     * @return The InfoDialog.
+     */
+    public InfoDialog getInfoDialog() {
+        return infoDialog;
     }
 }
