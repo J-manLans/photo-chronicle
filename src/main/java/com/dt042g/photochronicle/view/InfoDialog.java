@@ -1,5 +1,6 @@
 package com.dt042g.photochronicle.view;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -8,6 +9,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
+
 
 import com.dt042g.photochronicle.support.AppConfig;
 
@@ -18,7 +21,12 @@ public final class InfoDialog extends JDialog {
     private final JButton infoCloseBtn = new JButton("Close");
 
     public InfoDialog(JFrame mainFrame) {
+        super(mainFrame, true);
 
+        // Configure dialog appearance
+        setSize(AppConfig.DIALOG_DIMENSION);
+        setUndecorated(true);
+        infoDialogPanel.setBorder(new LineBorder(Color.DARK_GRAY));
     }
 }
 

@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.dt042g.photochronicle.controller.ChronicleController;
+import com.dt042g.photochronicle.support.AppConfig;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class InfoDialogTest {
@@ -73,6 +74,9 @@ public class InfoDialogTest {
         assertEquals(JPanel.class, getField("infoDialogPanel").getType());
     }
 
+    /**
+     * Test to ensure that the infoDialogPanel has a GridBagLayout.
+     */
     @Test
     void shouldHaveGridBagLayout() {
         assertEquals(
@@ -95,6 +99,31 @@ public class InfoDialogTest {
     @Test
     void shouldPassIfInfoCloseBtnIsJButton() {
         assertEquals(JButton.class, getField("infoCloseBtn").getType());
+    }
+
+    /**
+     * Test to ensure the MainFrame is the owner of the dialog.
+     * This will aid in ensuring it always will be opened in the centre of the main JFrame.
+     */
+    @Test
+    void shouldPassIfMainFrameIsTheOwnerOfInfoDialog() {
+        assertEquals(MainFrame.class, infoDialog.getOwner().getClass());
+    }
+
+    /**
+     * Test to ensure the InfoDialog is undecorated.
+     */
+    @Test
+    void shouldBeUnDecorated() {
+        assertTrue(infoDialog.isUndecorated());
+    }
+
+    /**
+     * Checks that the dialog have the same dimension as the one in the AppConfig file.
+     */
+    @Test
+    void shouldHaveTheSizeFromAppConfig() {
+        assertEquals(AppConfig.DIALOG_DIMENSION, infoDialog.getSize());
     }
 
     /*============================
