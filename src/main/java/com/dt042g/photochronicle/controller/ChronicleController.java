@@ -32,7 +32,18 @@ public final class ChronicleController {
      * then sets the {@link MainFrame} to visible.
      */
     public void initialize() {
+        initializeListeners();
         mainFrame.setVisible(true);
+    }
+
+    /**
+     * Initialize listeners to the application components.
+     */
+    public void initializeListeners() {
+        bottomPanel.addInfoButtonListener(e -> {
+            infoDialog.setLocationRelativeTo(infoDialog.getOwner());
+            infoDialog.setVisible(true);
+        });
     }
 
     /*=====================

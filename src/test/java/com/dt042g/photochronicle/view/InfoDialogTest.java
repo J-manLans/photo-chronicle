@@ -2,6 +2,7 @@ package com.dt042g.photochronicle.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.GridBagConstraints;
@@ -33,12 +34,12 @@ import com.dt042g.photochronicle.controller.ChronicleController;
 import com.dt042g.photochronicle.support.AppConfig;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class InfoDialogTest {
+public final class InfoDialogTest {
     private ChronicleController controller;
     private InfoDialog infoDialog;
     private Class<?> infoDialogClass;
     private final List<String> expectedFields = new ArrayList<>(List.of(
-        "gbc","infoDialogPanel","infoMessage","infoCloseBtn"
+        "gbc", "infoDialogPanel", "infoMessage", "infoCloseBtn"
     ));
 
     /*=====================
@@ -50,8 +51,84 @@ public class InfoDialogTest {
         SwingUtilities.invokeAndWait(() -> {
             controller = new ChronicleController();
             infoDialog = controller.getInfoDialog();
+            infoDialog.setModal(false);
         });
         infoDialogClass = infoDialog.getClass();
+    }
+
+    /*============================
+    * Design Integrity Tests
+    ============================*/
+
+    /**
+     * Test to ensure that the class is public, so it can be instantiated from another package.
+     */
+    @Test
+    void shouldPassIfInfoDialogIsPublic() {
+        assertTrue(Modifier.isPublic(infoDialogClass.getModifiers()));
+    }
+
+    /**
+     * Test to ensure that the class has been marked as final, preventing it to be subclassed.
+     */
+    @Test
+    void shouldPassIfInfoDialogIsFinal() {
+        assertTrue(Modifier.isFinal(infoDialogClass.getModifiers()));
+    }
+
+    /**
+     * Test to ensure the class extends JDialog.
+     */
+    @Test
+    void shouldPassIfInfoDialogExtendsJDialog() {
+        assertEquals(JDialog.class, infoDialogClass.getSuperclass());
+    }
+
+    /**
+     * Checks that all actual fields exist among the expected ones.
+     * @param fieldName the name of the instance field.
+     */
+    @ParameterizedTest
+    @MethodSource("provideClassFields")
+    void shouldPassIfInfoDialogHasNoExtraFields(final String fieldName) {
+        assertTrue(expectedFields.contains(fieldName));
+    }
+
+    /**
+     * Checks that all expected fields are present among the actual ones.
+     * @return A stream of dynamic tests, each testing whether an expected field exists in the InfoDialog's fields.
+     */
+    @TestFactory
+    Stream<DynamicTest> shouldPassIfInfoDialogHasNoMissingFields() {
+        final List<String> actualFields = provideClassFields().collect(Collectors.toList());
+
+        return expectedFields.stream()
+        .map(field -> DynamicTest.dynamicTest("Check field: " + field, () -> {
+            assertTrue(actualFields.contains(field));
+        }));
+    }
+
+    /**
+     * Test to ensure that all fields have private access modifier.
+     * @param fieldName the name of the instance field.
+     * @throws NoSuchFieldException if an instance field is not present.
+     */
+    @ParameterizedTest
+    @MethodSource("provideClassFields")
+    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
+        assertTrue(Modifier.isPrivate(infoDialogClass.getDeclaredField(fieldName).getModifiers()));
+    }
+
+    /**
+     * Test to ensure that no instance field are null.
+     * @param fieldName the name of the instance field.
+     * @throws NoSuchFieldException if an instance field is not present.
+     * @throws IllegalAccessException if the {@link Field} access is illegal.
+     */
+    @ParameterizedTest
+    @MethodSource("provideClassFields")
+    void shouldPassIfNoFieldIsNull(final String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        assertNotNull(getComponent(fieldName));
     }
 
     /*===============================
@@ -126,79 +203,38 @@ public class InfoDialogTest {
         assertEquals(AppConfig.DIALOG_DIMENSION, infoDialog.getSize());
     }
 
-    /*============================
-    * Design Integrity Tests
-    ============================*/
-
     /**
-     * Test to ensure that the class is public, so it can be instantiated from another package.
+     * Checks that the infoDialogPanel is added to the info dialog.
      */
     @Test
-    void shouldPassIfInfoDialogIsPublic() {
-        assertTrue(Modifier.isPublic(infoDialogClass.getModifiers()));
+    void shouldPassIfInfoPanelIsAddedToInfoDialog() {
+        assertSame(getComponent("infoDialogPanel"), infoDialog.getContentPane().getComponent(0));
     }
 
-    /**
-     * Test to ensure that the class has been marked as final, preventing it to be subclassed.
-     */
-    @Test
-    void shouldPassIfInfoDialogIsFinal() {
-        assertTrue(Modifier.isFinal(infoDialogClass.getModifiers()));
-    }
+    /*======================
+    * Unit Tests
+    ======================*/
 
     /**
-     * Test to ensure the class extends JDialog.
-     */
-    @Test
-    void shouldPassIfInfoDialogExtendsJDialog() {
-        assertEquals(JDialog.class, infoDialogClass.getSuperclass());
-    }
-
-    /**
-     * Checks that all actual fields exist among the expected ones.
-     * @return A stream of dynamic tests, each testing whether a field in the InfoDialog is part of the expected fields.
-     */
-    @ParameterizedTest
-    @MethodSource("provideClassFields")
-    void shouldPassIfInfoDialogHasNoExtraFields(final String fieldName) {
-        assertTrue(expectedFields.contains(fieldName));
-    }
-
-    /**
-     * Checks that all expected fields are present among the actual ones.
-     * @return A stream of dynamic tests, each testing whether an expected field exists in the InfoDialog's fields.
-     */
-    @TestFactory
-    Stream<DynamicTest> shouldPassIfInfoDialogHasNoMissingFields() {
-        List<String> actualFields = provideClassFields().collect(Collectors.toList());
-
-        return expectedFields.stream()
-        .map(field -> DynamicTest.dynamicTest("Check field: " + field, () -> {
-            assertTrue(actualFields.contains(field));
-        }));
-    }
-
-    /**
-     * Test to ensure that all fields have private access modifier.
-     * @throws NoSuchFieldException if an instance field is not present.
-     */
-    @ParameterizedTest
-    @MethodSource("provideClassFields")
-    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
-        assertTrue(Modifier.isPrivate(infoDialogClass.getDeclaredField(fieldName).getModifiers()));
-    }
-
-    /**
-     * Test to ensure that no instance field are null.
-     * @throws NoSuchFieldException if an instance field is not present.
+     * Tests that the dialog opens up when the info button is pressed.
+     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
+     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
+     * @throws NoSuchFieldException if the infoButton instance field is not present.
      * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
-    @ParameterizedTest
-    @MethodSource("provideClassFields")
-    void shouldPassIfNoFieldIsNull(final String fieldName) throws NoSuchFieldException, IllegalAccessException {
-        final Field field = infoDialogClass.getDeclaredField(fieldName);
+    @Test
+    void shouldOpenDialogWhenInfoButtonIsPressed()
+        throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        SwingUtilities.invokeAndWait(() -> controller.initializeListeners());
+
+        final BottomPanel bottomPanel = controller.getBottomPanel();
+        final Field field = bottomPanel.getClass().getDeclaredField("infoButton");
         field.setAccessible(true);
-        assertNotNull(field.get(infoDialog));
+        final JButton infoButton = (JButton) field.get(bottomPanel);
+
+        infoButton.doClick();
+
+        assertTrue(infoDialog.isVisible());
     }
 
     /*======================
@@ -210,20 +246,20 @@ public class InfoDialogTest {
         .map(Field::getName);
     }
 
-    private Field getField(String fieldName) {
+    private Field getField(final String fieldName) {
         try {
-            Field field = infoDialogClass.getDeclaredField(fieldName);
+            final Field field = infoDialogClass.getDeclaredField(fieldName);
             field.setAccessible(true);
             return field;
-        } catch (NoSuchFieldException e) {
+        } catch (final NoSuchFieldException e) {
             throw new IllegalArgumentException("Field " + fieldName + " don't exist", e);
         }
     }
 
-    private Object getComponent(String fieldName) {
+    private Object getComponent(final String fieldName) {
         try {
             return getField(fieldName).get(infoDialog);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw new IllegalStateException("Failed to access field: " + fieldName, e);
         }
     }
