@@ -30,9 +30,9 @@ public final class AppConfig {
 
     /** The html string for the JLabel that is in the info dialog. */
     public static final String HTML_INFO_LABEL = "<html><h3>Welcome to PhotoChronicle</h3><p>This app sorts folders"
-    + "that contain images into sub-folders of year and date using their metadata.</p><p>To do this, just click the"
-    + "<i>Add Folder</i> button and choose a folder that contains the images you want to sort. After that you click"
-    + "the same button that now says <i>Sort Folder</i>, and the folder will be sorted.</p></html>";
+    + " that contain images into sub-folders of year and date using their metadata.</p><p>To do this, just click the"
+    + " <i>Add Folder</i> button and choose a folder that contains the images you want to sort. After that you click"
+    + " the same button that now says <i>Sort Folder</i>, and the folder will be sorted.</p></html>";
 
     /* ===== Numbers ===== */
 
