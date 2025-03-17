@@ -18,6 +18,6 @@ public final class Main {
      * @param args command arguments (not used for this application).
      */
     public static void main(final String... args) {
-        SwingUtilities.invokeLater(() -> new ChronicleController());
+        SwingUtilities.invokeLater(() -> new ChronicleController().initialize());
     }
 }
