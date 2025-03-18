@@ -79,4 +79,11 @@ public final class AppConfig {
 
     /** A dimension for JDialogs. */
     public static final Dimension DIALOG_DIMENSION = new Dimension(400, 220);
+
+    /*=========================
+    * Model
+    =========================*/
+
+    /** The path to a test folder in the tests resource folder. */
+    public static final String TEST_FOLDER_PATH = "src\\test\\resources\\testImageFolder";
 }
