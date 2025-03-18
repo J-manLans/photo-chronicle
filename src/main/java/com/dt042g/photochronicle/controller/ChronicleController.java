@@ -7,7 +7,7 @@ import com.dt042g.photochronicle.view.MiddlePanel;
 import com.dt042g.photochronicle.view.TopPanel;
 
 /**
- * @author Joel Lansgren
+ * @author Joel Lansgren, Daniel Berg
  */
 public final class ChronicleController {
     private final TopPanel topPanel;
@@ -45,6 +45,13 @@ public final class ChronicleController {
             infoDialog.setVisible(true);
         });
         infoDialog.addInfoCloseBtnListener(e -> infoDialog.setVisible(false));
+
+        middlePanel.addListenerToFolderButton(event -> {
+            if (middlePanel.isInAddMode()) {
+                middlePanel.showFolderSelectionDialog();
+            }
+        });
+        middlePanel.addListenerToClearButton(event -> middlePanel.clearSelection());
     }
 
     /*=====================

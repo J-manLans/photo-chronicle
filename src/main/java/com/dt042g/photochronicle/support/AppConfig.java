@@ -37,6 +37,15 @@ public final class AppConfig {
     + " <i>Add Folder</i> button and choose a folder that contains the images you want to sort. After that you click"
     + " the same button that now says <i>Sort Folder</i>, and the folder will be sorted.</p></html>";
 
+    /** String to be displayed when no folder has been selected. */
+    public static final String NO_FOLDER_SELECTED = "Choose image folder";
+
+    /** Label of folder button when its adding folder */
+    public static final String ADD_FOLDER_BUTTON = "Add Folder";
+
+    /** Label of folder button when its sorting folder */
+    public static final String SORT_FOLDER_BUTTON = "Sort Folder";
+
     /* ===== Numbers ===== */
 
     /** An integer that defines hgap or vgap  between components in a panel that has FlowLayout. */

@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -23,14 +24,14 @@ import com.dt042g.photochronicle.support.AppConfig;
  * and JButton that has the ability to clear the content of the label, another
  * JButton for selecting and sorting images in a folder and a JFileChooser that
  * lets that happen.</p>
- * @author Joel Lansgren
+ * @author Joel Lansgren, Daniel Berg
  */
 public final class MiddlePanel extends JPanel {
     private final GridBagConstraints gbc = new GridBagConstraints();
     private final JPanel labelAndClearBtnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-    private final JLabel pathLabel = new JLabel("Choose image folder");
+    private final JLabel pathLabel = new JLabel(AppConfig.NO_FOLDER_SELECTED);
     private final JButton clearBtn = new JButton("Clear");
-    private final JButton addAndSortBtn = new JButton("Add Folder");
+    private final JButton addAndSortBtn = new JButton(AppConfig.ADD_FOLDER_BUTTON);
     private final JFileChooser fileChooser = new JFileChooser();
 
     /**
@@ -68,5 +69,45 @@ public final class MiddlePanel extends JPanel {
         add(labelAndClearBtnWrapper, gbc);
         gbc.insets = new Insets(0, AppConfig.FLOW_GAP, 0, 0);
         add(addAndSortBtn, gbc);
+    }
+
+    /**
+     * Adds a listener to the add/sort button.
+     * @param listener the listener to be attached to the button.
+     */
+    public void addListenerToFolderButton(final ActionListener listener) {
+        addAndSortBtn.addActionListener(listener);
+    }
+
+    /**
+     * Used to show the folder selection dialog.
+     */
+    public void showFolderSelectionDialog() {
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            pathLabel.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            addAndSortBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
+        }
+    }
+
+    /**
+     * Adds a listener to the clear button
+     * @param listener the listener to be attached to the button.
+     */
+    public void addListenerToClearButton(final ActionListener listener) {
+        clearBtn.addActionListener(listener);
+    }
+
+    /**
+     * Used to clear the path label and reset the add/sort button.
+     */
+    public void clearSelection() {
+        pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
+        addAndSortBtn.setText(AppConfig.ADD_FOLDER_BUTTON);
+    }
+
+    public boolean isInAddMode() {
+        return addAndSortBtn.getText().equals(AppConfig.ADD_FOLDER_BUTTON);
     }
 }

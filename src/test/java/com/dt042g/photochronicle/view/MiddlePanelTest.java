@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
+import java.awt.FlowLayout;
+import java.awt.Robot;
+import java.awt.AWTException;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -21,6 +24,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import com.dt042g.photochronicle.controller.ChronicleController;
+import com.dt042g.photochronicle.support.AppConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -160,6 +165,133 @@ public class MiddlePanelTest {
         );
     }
 
+    /**
+     * Ensure that a selected folder from the JFileChooser dialog updates the path label.
+     * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     * an exception.
+     */
+    @Test
+    public void shouldPassIfSelectedFolderChangesFolderLabel()
+            throws AWTException, NoSuchFieldException, IllegalAccessException,
+            InterruptedException, InvocationTargetException {
+        final ChronicleController controller = new ChronicleController();
+        SwingUtilities.invokeAndWait(controller::initializeListeners);
+
+        final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
+        final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
+        final JFileChooser fileChooser = (JFileChooser) getComponent(controller, "fileChooser");
+
+        invokeRobotKeyPress(KeyEvent.VK_ENTER);
+        addAndSortBtn.doClick();
+
+        assertEquals(fileChooser.getSelectedFile().getAbsolutePath(), pathLabel.getText());
+    }
+
+    /**
+     * Ensure that cancelling a selection of folder does not modify the path label.
+     * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     * an exception.
+     */
+    @Test
+    public void shouldPassIfCancelFolderSelectionDoesNotModifyLabel()
+            throws AWTException, NoSuchFieldException, IllegalAccessException,
+            InterruptedException, InvocationTargetException {
+        final ChronicleController controller = new ChronicleController();
+        SwingUtilities.invokeAndWait(controller::initializeListeners);
+
+        final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
+        final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
+        final String dummyPath = "C:\\Foo\\Bar\\";
+
+        pathLabel.setText(dummyPath);
+        invokeRobotKeyPress(KeyEvent.VK_ESCAPE);
+        addAndSortBtn.doClick();
+
+        assertEquals(dummyPath, pathLabel.getText());
+    }
+
+    /**
+     * Ensure that the text of the add/soft button is changed to "Sort Folder" when a folder is added.
+     * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     * an exception.
+     */
+    @Test
+    public void shouldPassIfAddButtonRenamedSortWhenFolderIsAdded()
+            throws AWTException, NoSuchFieldException, IllegalAccessException,
+            InterruptedException, InvocationTargetException {
+        final ChronicleController controller = new ChronicleController();
+        SwingUtilities.invokeAndWait(controller::initializeListeners);
+
+        final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
+
+        invokeRobotKeyPress(KeyEvent.VK_ENTER);
+        addAndSortBtn.doClick();
+
+        assertEquals(AppConfig.SORT_FOLDER_BUTTON, addAndSortBtn.getText());
+    }
+
+    /**
+     * Ensure that pressing the clear button resets the path label.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     * an exception.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     */
+    @Test
+    public void shouldPassIfClearButtonResetsThePathLabel()
+            throws InterruptedException, InvocationTargetException,
+            NoSuchFieldException, IllegalAccessException {
+        final ChronicleController controller = new ChronicleController();
+        SwingUtilities.invokeAndWait(controller::initializeListeners);
+
+        final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
+        final JButton clearBtn = (JButton) getComponent(controller, "clearBtn");
+
+        final String dummy = "C:\\Foo\\Bar\\";
+
+        pathLabel.setText(dummy);
+        clearBtn.doClick();
+
+        assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
+    }
+
+    /**
+     * Ensure that pressing the clear button resets the add/sort button.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     * an exception.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     */
+    @Test
+    public void shouldPassIfClearButtonResetsTheFolderButton()
+            throws InterruptedException, InvocationTargetException,
+            NoSuchFieldException, IllegalAccessException {
+        final ChronicleController controller = new ChronicleController();
+        SwingUtilities.invokeAndWait(controller::initializeListeners);
+
+        final JButton addSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
+        final JButton clearBtn = (JButton) getComponent(controller, "clearBtn");
+
+        addSortBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
+        clearBtn.doClick();
+
+        assertEquals(AppConfig.ADD_FOLDER_BUTTON, addSortBtn.getText());
+    }
+
     /*============================
     * Design Integrity Tests
     ============================*/
@@ -255,4 +387,27 @@ public class MiddlePanelTest {
             throw new RuntimeException("Failed to access field: " + fieldName, e);
         }
     }
+
+    private void invokeRobotKeyPress(final int key) throws AWTException {
+        final Robot robot = new Robot();
+
+        final int initialWaitTime = 1000;
+        final int keyPressWaitTime = 10;
+
+        new Thread(() -> {
+            robot.delay(initialWaitTime);
+            robot.keyPress(key);
+            robot.delay(keyPressWaitTime);
+            robot.keyRelease(key);
+        }).start();
+    }
+
+    private Object getComponent(
+            final ChronicleController controller, final String component)
+            throws NoSuchFieldException, IllegalAccessException {
+        final Field field = controller.getMiddlePanel().getClass().getDeclaredField(component);
+        field.setAccessible(true);
+        return field.get(controller.getMiddlePanel());
+    }
 }
+
