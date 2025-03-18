@@ -40,10 +40,10 @@ public final class AppConfig {
     /** String to be displayed when no folder has been selected. */
     public static final String NO_FOLDER_SELECTED = "Choose image folder";
 
-    /** Label of folder button when its adding folder */
+    /** Label of folder button when its adding folder. */
     public static final String ADD_FOLDER_BUTTON = "Add Folder";
 
-    /** Label of folder button when its sorting folder */
+    /** Label of folder button when its sorting folder. */
     public static final String SORT_FOLDER_BUTTON = "Sort Folder";
 
     /* ===== Numbers ===== */

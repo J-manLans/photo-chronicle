@@ -209,13 +209,12 @@ public class MiddlePanelTest {
 
         final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
         final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
-        final String dummyPath = "C:\\Foo\\Bar\\";
 
-        pathLabel.setText(dummyPath);
+        pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
         invokeRobotKeyPress(KeyEvent.VK_ESCAPE);
         addAndSortBtn.doClick();
 
-        assertEquals(dummyPath, pathLabel.getText());
+        assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
     }
 
     /**
@@ -391,13 +390,11 @@ public class MiddlePanelTest {
     private void invokeRobotKeyPress(final int key) throws AWTException {
         final Robot robot = new Robot();
 
-        final int initialWaitTime = 1000;
-        final int keyPressWaitTime = 10;
+        final int initialWaitTime = 250;
 
         new Thread(() -> {
             robot.delay(initialWaitTime);
             robot.keyPress(key);
-            robot.delay(keyPressWaitTime);
             robot.keyRelease(key);
         }).start();
     }

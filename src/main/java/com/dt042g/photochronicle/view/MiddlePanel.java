@@ -69,6 +69,11 @@ public final class MiddlePanel extends JPanel {
         add(labelAndClearBtnWrapper, gbc);
         gbc.insets = new Insets(0, AppConfig.FLOW_GAP, 0, 0);
         add(addAndSortBtn, gbc);
+
+        // Set a preferred width to the add/sort button.
+        final int buttonWidth = 100;
+        final int buttonHeight = (int) addAndSortBtn.getPreferredSize().getHeight();
+        addAndSortBtn.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
     }
 
     /**
@@ -92,7 +97,7 @@ public final class MiddlePanel extends JPanel {
     }
 
     /**
-     * Adds a listener to the clear button
+     * Adds a listener to the clear button.
      * @param listener the listener to be attached to the button.
      */
     public void addListenerToClearButton(final ActionListener listener) {
@@ -107,6 +112,11 @@ public final class MiddlePanel extends JPanel {
         addAndSortBtn.setText(AppConfig.ADD_FOLDER_BUTTON);
     }
 
+    /**
+     * Used to check whether the panel is in add or sort mode. That is, whether a folder has been
+     * selected or not.
+     * @return boolean whether the panel is in add mode.
+     */
     public boolean isInAddMode() {
         return addAndSortBtn.getText().equals(AppConfig.ADD_FOLDER_BUTTON);
     }
