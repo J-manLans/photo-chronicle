@@ -4,8 +4,10 @@ import com.dt042g.photochronicle.support.AppConfig;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 import java.awt.FlowLayout;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,7 +22,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Daniel Berg
  */
 public class BottomPanelTest {
-    private final BottomPanel bottomPanel = new BottomPanel();
+    private BottomPanel bottomPanel;
+
+    /**
+     * Constructor of the test class, creating a new instance of the {@link BottomPanel} class.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    public BottomPanelTest() throws InterruptedException, InvocationTargetException {
+        SwingUtilities.invokeAndWait(() -> bottomPanel = new BottomPanel());
+    }
 
     /**
      * Test to ensure that the class has been marked as final, preventing it to be subclassed.
