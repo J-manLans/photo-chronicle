@@ -313,7 +313,7 @@ public final class InfoDialogTest {
     * Helper Methods
     ======================*/
 
-    Stream<String> provideClassFields() {
+    private Stream<String> provideClassFields() {
         return Arrays.stream(infoDialogClass.getDeclaredFields())
         .map(Field::getName);
     }

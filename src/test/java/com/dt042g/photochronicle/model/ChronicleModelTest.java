@@ -1,14 +1,26 @@
 package com.dt042g.photochronicle.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.AclEntry;
+import java.nio.file.attribute.AclEntryPermission;
+import java.nio.file.attribute.AclEntryType;
+import java.nio.file.attribute.AclFileAttributeView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,10 +28,15 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -29,13 +46,30 @@ import com.dt042g.photochronicle.support.AppConfig;
  * Unit tests for {@link ChronicleModel}, ensuring design integrity and correct functionality.
  * @author Joel Lansgren
  */
+@TestMethodOrder(OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ChronicleModelTest {
     private ChronicleModel model = new ChronicleModel();
     private Class<?> modelClass = model.getClass();
     private final List<String> expectedFields = new ArrayList<>(List.of(
-        "path"
+        "path", "writeError"
     ));
+    private AclFileAttributeView aclView;
+    private List<AclEntry> originalAcl;
+
+    /*====================
+    * Setup
+    *====================*/
+
+    @AfterEach
+    private void tearDown() throws IOException {
+        if (originalAcl != null && aclView != null) {
+            aclView.setAcl(originalAcl);
+            originalAcl = null;
+            aclView = null;
+        }
+        model.nullifyPath();
+    }
 
     /*========================
     * Design Integrity Tests
@@ -114,7 +148,7 @@ public class ChronicleModelTest {
      * Tests that the Path is successfully set through the setPath method.
      */
     @Test
-    void shouldHaveTheSetPath() {
+    void shouldHaveThePathSet() {
         model.setPath(AppConfig.TEST_FOLDER_PATH);
         assertEquals(AppConfig.TEST_FOLDER_PATH, getComponent("path").toString());
     }
@@ -138,6 +172,74 @@ public class ChronicleModelTest {
 
         // And here we check if the parameters type name contains "String"
         assertTrue(parameterTypeName.contains("String"));
+    }
+
+    /**
+     * Test that verifies the behavior when a null folder path is provided.
+     *
+     * This test ensures that if the folder path is null, an AccessDeniedException is thrown when
+     * the model's verifyAccess() method is invoked.
+     */
+    @Test
+    void shouldThrowForNullFolder() {
+        assertThrows(AccessDeniedException.class, () -> model.verifyAccess());
+    }
+
+    /**
+     * Test that verifies the behavior when a valid folder path is provided.
+     *
+     * This test ensures that if the folder path is set to a valid folder, the model's verifyAccess()
+     * method does not throw any exception.
+     */
+    @Test
+    void shouldNotThrowForValidFolder() {
+        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        assertDoesNotThrow(() -> model.verifyAccess());
+    }
+
+    /**
+     * Test that verifies the behavior for an invalid folder on Windows.
+     *
+     * This test ensures that if the folder path is set to a valid folder but the write permissions
+     * are explicitly denied for "Everyone" on Windows, an AccessDeniedException is thrown when
+     * the model's verifyAccess() method is invoked. It configures ACL (Access Control List) entries
+     * to deny write permissions through {@link #setReadOnlyAccess} and checks that the exception is properly thrown.
+     */
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    void shouldThrowForInvalidValidFolder() {
+        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        setReadOnlyAccess();
+
+        assertThrows(AccessDeniedException.class, () -> model.verifyAccess());
+    }
+
+    /**
+     * Test that verifies that the error message is empty when the folder is valid.
+     */
+    @Test
+    void shouldHaveEmptyErrorMessageForValidFolder() {
+        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        assertEquals("", getErrorFromVerifyMethod());
+    }
+
+    /**
+     * Test that verifies the handling of an empty path in the sortFolder method.
+     */
+    @Test
+    void shouldHandleEmptyPathInSortFolderMethod() {
+        assertEquals(AppConfig.GENERAL_ERROR, getErrorFromVerifyMethod());
+    }
+
+    /**
+     * Test that verifies the handling of a write error in the sortFolder method.
+     */
+    @Test
+    void shouldHandleWriteErrorInSortFolderMethod() {
+        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        setReadOnlyAccess();
+
+        assertEquals((String) getComponent("writeError"), getErrorFromVerifyMethod());
     }
 
     /*======================
@@ -165,5 +267,48 @@ public class ChronicleModelTest {
         } catch (final IllegalAccessException e) {
             throw new IllegalStateException("Failed to access field: " + fieldName, e);
         }
+    }
+
+    private void setReadOnlyAccess() {
+        try {
+            Path folder = (Path) getComponent("path");
+
+            // Get Access Control List (ACL) view
+            aclView = Files.getFileAttributeView(folder, AclFileAttributeView.class);
+
+            originalAcl = aclView.getAcl(); // Stores original for restoration in tearDown
+            List<AclEntry> acl = aclView.getAcl(); // Get current ACL
+
+            // Create a deny write permission entry for Everyone
+            AclEntry denyWrite = AclEntry.newBuilder()
+            .setType(AclEntryType.DENY)
+            .setPrincipal(FileSystems.getDefault().getUserPrincipalLookupService().lookupPrincipalByName("Everyone"))
+            .setPermissions(AclEntryPermission.WRITE_DATA, AclEntryPermission.APPEND_DATA)
+            .build();
+
+            // Insert DENY first to ensure it takes precedence,
+            // as Windows stops checking after the first matching rule.
+            acl.add(0, denyWrite);
+            aclView.setAcl(acl); // Sets the acl.
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to set read-only access", e);
+        }
+    }
+
+    /**
+     * Retrieves the error message generated by the verifyAccess method when invoked through sortFolder.
+     *
+     * This helper method calls the model's sortFolder method and captures any error message that is displayed
+     * by the verifyAccess method. The error message is returned as a string.
+     *
+     * @return the error message returned by the verifyAccess method, or an empty string if no error occurred.
+     */
+    private String getErrorFromVerifyMethod() {
+        StringBuilder errorMessage = new StringBuilder();
+        Consumer<String> displayError = errorMessage::append;
+
+        model.sortFolder(displayError);
+
+        return errorMessage.toString();
     }
 }
