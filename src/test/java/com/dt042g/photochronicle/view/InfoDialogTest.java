@@ -3,6 +3,7 @@ package com.dt042g.photochronicle.view;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,6 +13,7 @@ import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +41,7 @@ import com.dt042g.photochronicle.support.AppConfig;
 /**
  * Unit tests for {@link InfoDialog}, ensuring design integrity, component verification,
  * and event handling correctness.
- * @author Joel Lansgren
+ * @author Joel Lansgren, Daniel Berg
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public final class InfoDialogTest {
@@ -137,6 +139,90 @@ public final class InfoDialogTest {
     @MethodSource("provideClassFields")
     void shouldPassIfNoFieldIsNull(final String fieldName) throws NoSuchFieldException, IllegalAccessException {
         assertNotNull(getComponent(fieldName));
+    }
+
+    /**
+     * Ensure that a setMessage, taking a String object as the only parameter, is present.
+     */
+    @Test
+    public void shouldPassIfSetMessageMethodIsPresent() {
+        assertDoesNotThrow(() -> InfoDialog.class.getDeclaredMethod("setMessage", String.class));
+    }
+
+    /**
+     * Ensure that the setMessage method does not return a value.
+     * @throws NoSuchMethodException if the setMessage method is not present.
+     */
+    @Test
+    public void shouldPassIfSetMessageReturnsVoid() throws NoSuchMethodException {
+        final Method method = InfoDialog.class.getDeclaredMethod("setMessage", String.class);
+        assertEquals(void.class, method.getReturnType());
+    }
+
+    /**
+     * Ensure that the setMessage method is not static.
+     * @throws NoSuchMethodException if the setMessage method is not present.
+     */
+    @Test
+    public void shouldPassIfSetMessageIsNotStatic() throws NoSuchMethodException {
+        final Method method = InfoDialog.class.getDeclaredMethod("setMessage", String.class);
+        assertFalse(Modifier.isStatic(method.getModifiers()));
+    }
+
+    /**
+     * Ensure that a showDialog method is present.
+     */
+    @Test
+    public void shouldPassIfShowDialogMethodIsPresent() {
+        assertDoesNotThrow(() -> InfoDialog.class.getDeclaredMethod("showDialog"));
+    }
+
+    /**
+     * Ensure that the showDialog method does not return a value.
+     * @throws NoSuchMethodException if the showDialog method is not present.
+     */
+    @Test
+    public void shouldPassIfShowDialogReturnsVoid() throws NoSuchMethodException {
+        final Method method = InfoDialog.class.getDeclaredMethod("showDialog");
+        assertEquals(void.class, method.getReturnType());
+    }
+
+    /**
+     * Ensure that the showDialog method is not static.
+     * @throws NoSuchMethodException if the showDialog method is not present.
+     */
+    @Test
+    public void shouldPassIfShowDialogIsNotStatic() throws NoSuchMethodException {
+        final Method method = InfoDialog.class.getDeclaredMethod("showDialog");
+        assertFalse(Modifier.isStatic(method.getModifiers()));
+    }
+
+    /**
+     * Ensure that a hideDialog method is present.
+     */
+    @Test
+    public void shouldPassIfHideDialogMethodIsPresent() {
+        assertDoesNotThrow(() -> InfoDialog.class.getDeclaredMethod("hideDialog"));
+    }
+
+    /**
+     * Ensure that the hideDialog method does not return a value.
+     * @throws NoSuchMethodException if the hideDialog method is not present.
+     */
+    @Test
+    public void shouldPassIfHideDialogReturnsVoid() throws NoSuchMethodException {
+        final Method method = InfoDialog.class.getDeclaredMethod("hideDialog");
+        assertEquals(void.class, method.getReturnType());
+    }
+
+    /**
+     * Ensure that the hideDialog method is not static.
+     * @throws NoSuchMethodException if the hideDialog method is not present.
+     */
+    @Test
+    public void shouldPassIfHideDialogIsNotStatic() throws NoSuchMethodException {
+        final Method method = InfoDialog.class.getDeclaredMethod("hideDialog");
+        assertFalse(Modifier.isStatic(method.getModifiers()));
     }
 
     /*===============================
@@ -307,6 +393,66 @@ public final class InfoDialogTest {
 
         assertFalse(isVisible);
         SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
+    }
+
+    /**
+     * Ensure that the setMessage method sets the message to the info label component.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    @Test
+    public void shouldPassIfSetMessageUpdatesTheLabel() throws InterruptedException, InvocationTargetException {
+        final String testMessage = "This is a test message";
+        final JLabel label = (JLabel) getComponent("infoMessage");
+
+        SwingUtilities.invokeAndWait(() -> infoDialog.setMessage(testMessage));
+
+        assertEquals(testMessage, label.getText());
+    }
+
+    /**
+     * Ensure that the showDialog method shows the dialog.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    @Test
+    public void shouldPassIfShowDialogDisplaysDialog() throws InterruptedException, InvocationTargetException {
+        SwingUtilities.invokeAndWait(() -> infoDialog.showDialog());
+        assertTrue(infoDialog.isVisible());
+    }
+
+    /**
+     * Ensure that the hideDialog method hides the dialog.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    @Test
+    public void shouldPassIfHideDialogHidesDialog() throws InterruptedException, InvocationTargetException {
+        SwingUtilities.invokeAndWait(() -> infoDialog.hideDialog());
+        assertFalse(infoDialog.isVisible());
+    }
+
+    /**
+     * Ensure that the hideDialog method reset the info label.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    @Test
+    public void shouldPassIfHideDialogResetsInfoLabel() throws InterruptedException, InvocationTargetException {
+        final String testMessage = "This is a test message.";
+        final JLabel label = (JLabel) getComponent("infoMessage");
+
+        SwingUtilities.invokeAndWait(() -> {
+            infoDialog.setMessage(testMessage);
+            infoDialog.showDialog();
+            infoDialog.hideDialog();
+        });
+
+        assertEquals(AppConfig.HTML_INFO_LABEL, label.getText());
     }
 
     /*======================
