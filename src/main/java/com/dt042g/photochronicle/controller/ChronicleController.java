@@ -40,11 +40,8 @@ public final class ChronicleController {
      * Initialize listeners to the application components.
      */
     public void initializeListeners() {
-        bottomPanel.addInfoButtonListener(e -> {
-            infoDialog.setLocationRelativeTo(infoDialog.getOwner());
-            infoDialog.setVisible(true);
-        });
-        infoDialog.addInfoCloseBtnListener(e -> infoDialog.setVisible(false));
+        bottomPanel.addInfoButtonListener(e -> infoDialog.showDialog());
+        infoDialog.addInfoCloseBtnListener(e -> infoDialog.hideDialog());
 
         middlePanel.addListenerToFolderButton(event -> {
             if (middlePanel.isInAddMode()) {
