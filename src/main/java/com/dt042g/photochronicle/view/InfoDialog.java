@@ -20,7 +20,7 @@ import com.dt042g.photochronicle.support.AppConfig;
  *
  * <p>This dialog appears centered relative to the main application window and prevents
  * interaction with the main frame while open. It contains a message label and a close button.</p>
- * @author Joel Lansgren
+ * @author Joel Lansgren, Daniel Berg
  */
 public final class InfoDialog extends JDialog {
     private final GridBagConstraints gbc = new GridBagConstraints();
@@ -70,5 +70,28 @@ public final class InfoDialog extends JDialog {
     public void addInfoCloseBtnListener(final ActionListener listener) {
         infoCloseBtn.addActionListener(listener);
     }
-}
 
+    /**
+     * Set the message of the InfoDialog.
+     * @param message the message to be set.
+     */
+    public void setMessage(final String message) {
+        infoMessage.setText(message);
+    }
+
+    /**
+     * Used to show the info dialog.
+     */
+    public void showDialog() {
+        setLocationRelativeTo(getOwner());
+        setVisible(true);
+    }
+
+    /**
+     * Used to hide the info dialog, and reset the information label.
+     */
+    public void hideDialog() {
+        setVisible(false);
+        infoMessage.setText(AppConfig.HTML_INFO_LABEL);
+    }
+}
