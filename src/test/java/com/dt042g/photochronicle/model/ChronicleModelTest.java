@@ -17,6 +17,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.AclEntry;
 import java.nio.file.attribute.AclEntryPermission;
 import java.nio.file.attribute.AclEntryType;
@@ -49,8 +50,11 @@ import com.dt042g.photochronicle.support.AppConfig;
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ChronicleModelTest {
-    private ChronicleModel model = new ChronicleModel();
-    private Class<?> modelClass = model.getClass();
+    private final ChronicleModel model = new ChronicleModel();
+    private final Class<?> modelClass = model.getClass();
+    private final String pathToTestFolder = Paths.get(
+        System.getProperty("user.dir"),"src", "test", "resources", "testImageFolder"
+    ).toString();
     private final List<String> expectedFields = new ArrayList<>(List.of(
         "path", "writeError"
     ));
@@ -149,8 +153,8 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldHaveThePathSet() {
-        model.setPath(AppConfig.TEST_FOLDER_PATH);
-        assertEquals(AppConfig.TEST_FOLDER_PATH, getComponent("path").toString());
+        model.setPath(pathToTestFolder);
+        assertEquals(pathToTestFolder, getComponent("path").toString());
     }
 
     /**
@@ -160,12 +164,12 @@ public class ChronicleModelTest {
     @Test
     void shouldHaveAConsumerStringAsParameter() throws NoSuchMethodException {
         // Confirms the method have one parameter and that it's a consumer
-        Method method = modelClass.getDeclaredMethod("sortFolder", Consumer.class);
-        Parameter[] parameters = method.getParameters();
+        final Method method = modelClass.getDeclaredMethod("sortFolder", Consumer.class);
+        final Parameter[] parameters = method.getParameters();
         Type parameterType = null;
         String parameterTypeName = null;
 
-        for (Parameter parameter : parameters) {
+        for (final Parameter parameter : parameters) {
             parameterType = parameter.getParameterizedType();
             parameterTypeName = parameterType.getTypeName();
         }
@@ -193,7 +197,7 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldNotThrowForValidFolder() {
-        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        model.setPath(pathToTestFolder);
         assertDoesNotThrow(() -> model.verifyAccess());
     }
 
@@ -208,7 +212,7 @@ public class ChronicleModelTest {
     @Test
     @EnabledOnOs(OS.WINDOWS)
     void shouldThrowForInvalidValidFolder() {
-        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        model.setPath(pathToTestFolder);
         setReadOnlyAccess();
 
         assertThrows(AccessDeniedException.class, () -> model.verifyAccess());
@@ -219,7 +223,7 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldHaveEmptyErrorMessageForValidFolder() {
-        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        model.setPath(pathToTestFolder);
         assertEquals("", getErrorFromVerifyMethod());
     }
 
@@ -236,7 +240,7 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldHandleWriteErrorInSortFolderMethod() {
-        model.setPath(AppConfig.TEST_FOLDER_PATH);
+        model.setPath(pathToTestFolder);
         setReadOnlyAccess();
 
         assertEquals((String) getComponent("writeError"), getErrorFromVerifyMethod());
@@ -271,16 +275,16 @@ public class ChronicleModelTest {
 
     private void setReadOnlyAccess() {
         try {
-            Path folder = (Path) getComponent("path");
+            final Path folder = (Path) getComponent("path");
 
             // Get Access Control List (ACL) view
             aclView = Files.getFileAttributeView(folder, AclFileAttributeView.class);
 
             originalAcl = aclView.getAcl(); // Stores original for restoration in tearDown
-            List<AclEntry> acl = aclView.getAcl(); // Get current ACL
+            final List<AclEntry> acl = aclView.getAcl(); // Get current ACL
 
             // Create a deny write permission entry for Everyone
-            AclEntry denyWrite = AclEntry.newBuilder()
+            final AclEntry denyWrite = AclEntry.newBuilder()
             .setType(AclEntryType.DENY)
             .setPrincipal(FileSystems.getDefault().getUserPrincipalLookupService().lookupPrincipalByName("Everyone"))
             .setPermissions(AclEntryPermission.WRITE_DATA, AclEntryPermission.APPEND_DATA)
@@ -290,7 +294,7 @@ public class ChronicleModelTest {
             // as Windows stops checking after the first matching rule.
             acl.add(0, denyWrite);
             aclView.setAcl(acl); // Sets the acl.
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UncheckedIOException("Failed to set read-only access", e);
         }
     }
@@ -304,8 +308,8 @@ public class ChronicleModelTest {
      * @return the error message returned by the verifyAccess method, or an empty string if no error occurred.
      */
     private String getErrorFromVerifyMethod() {
-        StringBuilder errorMessage = new StringBuilder();
-        Consumer<String> displayError = errorMessage::append;
+        final StringBuilder errorMessage = new StringBuilder();
+        final Consumer<String> displayError = errorMessage::append;
 
         model.sortFolder(displayError);
 

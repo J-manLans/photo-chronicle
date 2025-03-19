@@ -31,7 +31,7 @@ public final class MiddlePanel extends JPanel {
     private final JPanel labelAndClearBtnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     private final JLabel pathLabel = new JLabel(AppConfig.NO_FOLDER_SELECTED);
     private final JButton clearBtn = new JButton("Clear");
-    private final JButton addAndSortBtn = new JButton(AppConfig.ADD_FOLDER_BUTTON);
+    private final JButton chooseFolderBtn = new JButton(AppConfig.ADD_FOLDER_BUTTON);
     private final JFileChooser fileChooser = new JFileChooser();
 
     /**
@@ -56,7 +56,7 @@ public final class MiddlePanel extends JPanel {
         pathLabel.setFont(new Font("Monospace", Font.ITALIC, AppConfig.TEXT_SIZE_NORMAL));
         pathLabel.setForeground(Color.LIGHT_GRAY);
         pathLabel.setPreferredSize(
-            new Dimension(AppConfig.FOLDER_PATH_WIDTH, (int) addAndSortBtn.getPreferredSize().getHeight())
+            new Dimension(AppConfig.FOLDER_PATH_WIDTH, (int) chooseFolderBtn.getPreferredSize().getHeight())
         );
 
         // Sets up the fileChooser
@@ -68,12 +68,12 @@ public final class MiddlePanel extends JPanel {
         labelAndClearBtnWrapper.add(clearBtn);
         add(labelAndClearBtnWrapper, gbc);
         gbc.insets = new Insets(0, AppConfig.FLOW_GAP, 0, 0);
-        add(addAndSortBtn, gbc);
+        add(chooseFolderBtn, gbc);
 
         // Set a preferred width to the add/sort button.
         final int buttonWidth = 100;
-        final int buttonHeight = (int) addAndSortBtn.getPreferredSize().getHeight();
-        addAndSortBtn.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        final int buttonHeight = (int) chooseFolderBtn.getPreferredSize().getHeight();
+        chooseFolderBtn.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
     }
 
     /**
@@ -81,7 +81,7 @@ public final class MiddlePanel extends JPanel {
      * @param listener the listener to be attached to the button.
      */
     public void addListenerToFolderButton(final ActionListener listener) {
-        addAndSortBtn.addActionListener(listener);
+        chooseFolderBtn.addActionListener(listener);
     }
 
     /**
@@ -92,7 +92,7 @@ public final class MiddlePanel extends JPanel {
 
         if (result == JFileChooser.APPROVE_OPTION) {
             pathLabel.setText(fileChooser.getSelectedFile().getAbsolutePath());
-            addAndSortBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
+            chooseFolderBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
         }
     }
 
@@ -109,7 +109,7 @@ public final class MiddlePanel extends JPanel {
      */
     public void clearSelection() {
         pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
-        addAndSortBtn.setText(AppConfig.ADD_FOLDER_BUTTON);
+        chooseFolderBtn.setText(AppConfig.ADD_FOLDER_BUTTON);
     }
 
     /**
@@ -118,6 +118,6 @@ public final class MiddlePanel extends JPanel {
      * @return boolean whether the panel is in add mode.
      */
     public boolean isInAddMode() {
-        return addAndSortBtn.getText().equals(AppConfig.ADD_FOLDER_BUTTON);
+        return chooseFolderBtn.getText().equals(AppConfig.ADD_FOLDER_BUTTON);
     }
 }

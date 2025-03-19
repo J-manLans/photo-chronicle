@@ -1,9 +1,9 @@
 package com.dt042g.photochronicle.view;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -382,7 +382,7 @@ public final class InfoDialogTest {
     @Test
     void shouldPassIfDialogIsClosedWhenCloseBtnIsClicked()
     throws InvocationTargetException, NoSuchFieldException, IllegalAccessException, InterruptedException {
-        JButton infoCloseBtn = (JButton) getComponent("infoCloseBtn");
+        final JButton infoCloseBtn = (JButton) getComponent("infoCloseBtn");
         boolean isVisible = true;
         clickInfoButton(controller::initializeListeners);
 
@@ -457,6 +457,27 @@ public final class InfoDialogTest {
         });
 
         assertEquals(AppConfig.HTML_INFO_LABEL, label.getText());
+    }
+
+    /*======================
+    * Unit Tests
+    ======================*/
+
+    /**
+     * Validates that the addInfoCloseBtnListener adds a listener to the close button.
+     * @throws InterruptedException
+     * @throws InvocationTargetException
+     */
+    @Test
+    void shouldHaveListener() throws InvocationTargetException, InterruptedException {
+        final JButton closeBtn = (JButton) getComponent("infoCloseBtn");
+        final int initialListeners = closeBtn.getActionListeners().length;
+
+        SwingUtilities.invokeAndWait(() -> infoDialog.addInfoCloseBtnListener(e -> {}));
+
+        final int currentListeners = closeBtn.getActionListeners().length;
+
+        assertEquals(initialListeners + 1, currentListeners);
     }
 
     /*======================
