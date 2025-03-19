@@ -86,4 +86,7 @@ public final class AppConfig {
 
     /** The path to a test folder in the tests resource folder. */
     public static final String TEST_FOLDER_PATH = "src\\test\\resources\\testImageFolder";
+
+    public static final String GENERAL_ERROR = "<html>Something went wrong when trying to access the folder. We are"
+    + " sorry for this and will look into the issue as soon as possible<html>";
 }

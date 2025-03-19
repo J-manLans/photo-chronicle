@@ -94,7 +94,9 @@
 
         <!--<module name="JavadocVariable"/>-->
         <module name="JavadocStyle"/>
-        <module name="MissingJavadocMethod"/>
+        <module name="MissingJavadocMethod">
+            <property name="scope" value="package"/>
+        </module>
         <module name="MissingJavadocType"/>
         <module name="MissingJavadocPackage"/>
 
