@@ -431,7 +431,11 @@ public final class InfoDialogTest {
      */
     @Test
     public void shouldPassIfHideDialogHidesDialog() throws InterruptedException, InvocationTargetException {
-        SwingUtilities.invokeAndWait(() -> infoDialog.hideDialog());
+        SwingUtilities.invokeAndWait(() -> {
+            infoDialog.showDialog();
+            infoDialog.hideDialog();
+        });
+
         assertFalse(infoDialog.isVisible());
     }
 

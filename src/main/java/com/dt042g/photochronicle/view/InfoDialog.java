@@ -83,6 +83,7 @@ public final class InfoDialog extends JDialog {
      * Used to show the info dialog.
      */
     public void showDialog() {
+        setLocationRelativeTo(getOwner());
         setVisible(true);
     }
 
