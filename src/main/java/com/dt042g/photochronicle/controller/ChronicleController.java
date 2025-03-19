@@ -1,5 +1,6 @@
 package com.dt042g.photochronicle.controller;
 
+import com.dt042g.photochronicle.model.ChronicleModel;
 import com.dt042g.photochronicle.view.BottomPanel;
 import com.dt042g.photochronicle.view.InfoDialog;
 import com.dt042g.photochronicle.view.MainFrame;
@@ -15,6 +16,7 @@ public final class ChronicleController {
     private final BottomPanel bottomPanel;
     private final MainFrame mainFrame;
     private final InfoDialog infoDialog;
+    private final ChronicleModel chronicleModel;
 
     /**
      * Constructs the controller and instantiates all views and models that's part of the MVC pattern.
@@ -25,6 +27,7 @@ public final class ChronicleController {
         bottomPanel = new BottomPanel();
         mainFrame = new MainFrame(topPanel, middlePanel, bottomPanel);
         infoDialog = new InfoDialog(mainFrame);
+        chronicleModel = new ChronicleModel();
     }
 
     /**
@@ -46,11 +49,7 @@ public final class ChronicleController {
         });
         infoDialog.addInfoCloseBtnListener(e -> infoDialog.setVisible(false));
 
-        middlePanel.addListenerToFolderButton(event -> {
-            if (middlePanel.isInAddMode()) {
-                middlePanel.showFolderSelectionDialog();
-            }
-        });
+        middlePanel.addListenerToFolderButton(event -> middlePanel.showFolderSelectionDialog(this::sortFolder));
         middlePanel.addListenerToClearButton(event -> middlePanel.clearSelection());
     }
 
@@ -96,5 +95,27 @@ public final class ChronicleController {
      */
     public InfoDialog getInfoDialog() {
         return infoDialog;
+    }
+
+    /**
+     * Returns the ChronicleModel so test classes can set up test environments.
+     * @return The ChronicleModel.
+     */
+    public ChronicleModel getChronicleModel() {
+        return chronicleModel;
+    }
+
+    /*=====================
+    * Helper Methods
+    =====================*/
+
+    private void sortFolder(final String path) {
+        chronicleModel.setPath(path);
+        chronicleModel.sortFolder(this::displayError);
+    }
+
+    private void displayError(final String errorMessage) {
+        infoDialog.setMessage(errorMessage);
+        infoDialog.showDialog();
     }
 }

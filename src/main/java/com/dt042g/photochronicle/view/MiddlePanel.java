@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -31,7 +32,7 @@ public final class MiddlePanel extends JPanel {
     private final JPanel labelAndClearBtnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     private final JLabel pathLabel = new JLabel(AppConfig.NO_FOLDER_SELECTED);
     private final JButton clearBtn = new JButton("Clear");
-    private final JButton chooseFolderBtn = new JButton(AppConfig.ADD_FOLDER_BUTTON);
+    private final JButton chooseFolderBtn = new JButton("Choose Folder");
     private final JFileChooser fileChooser = new JFileChooser();
 
     /**
@@ -69,11 +70,6 @@ public final class MiddlePanel extends JPanel {
         add(labelAndClearBtnWrapper, gbc);
         gbc.insets = new Insets(0, AppConfig.FLOW_GAP, 0, 0);
         add(chooseFolderBtn, gbc);
-
-        // Set a preferred width to the add/sort button.
-        final int buttonWidth = 100;
-        final int buttonHeight = (int) chooseFolderBtn.getPreferredSize().getHeight();
-        chooseFolderBtn.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
     }
 
     /**
@@ -86,13 +82,14 @@ public final class MiddlePanel extends JPanel {
 
     /**
      * Used to show the folder selection dialog.
+     * @param sortFolder a callback to the controller that starts the sorting function in the model.
      */
-    public void showFolderSelectionDialog() {
-        int result = fileChooser.showOpenDialog(this);
+    public void showFolderSelectionDialog(final Consumer<String> sortFolder) {
+        final int result = fileChooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
             pathLabel.setText(fileChooser.getSelectedFile().getAbsolutePath());
-            chooseFolderBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
+            sortFolder.accept(pathLabel.getText());
         }
     }
 
@@ -109,15 +106,5 @@ public final class MiddlePanel extends JPanel {
      */
     public void clearSelection() {
         pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
-        chooseFolderBtn.setText(AppConfig.ADD_FOLDER_BUTTON);
-    }
-
-    /**
-     * Used to check whether the panel is in add or sort mode. That is, whether a folder has been
-     * selected or not.
-     * @return boolean whether the panel is in add mode.
-     */
-    public boolean isInAddMode() {
-        return chooseFolderBtn.getText().equals(AppConfig.ADD_FOLDER_BUTTON);
     }
 }

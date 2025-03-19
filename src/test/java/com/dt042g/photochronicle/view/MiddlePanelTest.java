@@ -221,30 +221,6 @@ public class MiddlePanelTest {
     }
 
     /**
-     * Ensure that the text of the add/soft button is changed to "Sort Folder" when a folder is added.
-     * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
-     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
-     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
-     * an exception.
-     */
-    @Test
-    public void shouldPassIfAddButtonRenamedSortWhenFolderIsAdded()
-            throws AWTException, NoSuchFieldException, IllegalAccessException,
-            InterruptedException, InvocationTargetException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
-
-        final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
-
-        invokeRobotKeyPress(KeyEvent.VK_ENTER);
-        chooseFolderBtn.doClick();
-
-        assertEquals(AppConfig.SORT_FOLDER_BUTTON, chooseFolderBtn.getText());
-    }
-
-    /**
      * Ensure that pressing the clear button resets the path label.
      * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
      * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
@@ -268,30 +244,6 @@ public class MiddlePanelTest {
         clearBtn.doClick();
 
         assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
-    }
-
-    /**
-     * Ensure that pressing the clear button resets the add/sort button.
-     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
-     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
-     * an exception.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
-     */
-    @Test
-    public void shouldPassIfClearButtonResetsTheFolderButton()
-            throws InterruptedException, InvocationTargetException,
-            NoSuchFieldException, IllegalAccessException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
-
-        final JButton addSortBtn = (JButton) getComponent(controller, "chooseFolderBtn");
-        final JButton clearBtn = (JButton) getComponent(controller, "clearBtn");
-
-        addSortBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
-        clearBtn.doClick();
-
-        assertEquals(AppConfig.ADD_FOLDER_BUTTON, addSortBtn.getText());
     }
 
     /*============================
@@ -348,21 +300,17 @@ public class MiddlePanelTest {
 
     /**
      * Validates that the addListenerToFolderButton adds a listener to the folder button.
-     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
-     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      */
     @Test
-    void shouldAttachListenerViaAddListenerToFolderButton() throws InvocationTargetException, InterruptedException {
+    void shouldAttachListenerViaAddListenerToFolderButton() {
         assertMethodAddsListener("chooseFolderBtn", middlePanel::addListenerToFolderButton);
     }
 
     /**
      * Validates that the addListenerToClearButton adds a listener to the clear button.
-     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
-     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      */
     @Test
-    void shouldAttachListenerViaAddListenerToClearButton() throws InvocationTargetException, InterruptedException {
+    void shouldAttachListenerViaAddListenerToClearButton() {
         assertMethodAddsListener("clearBtn", middlePanel::addListenerToClearButton);
     }
 
@@ -434,12 +382,12 @@ public class MiddlePanelTest {
         return field.get(controller.getMiddlePanel());
     }
 
-    private void assertMethodAddsListener(String buttonName, Consumer<ActionListener> addListenerMethod) {
+    private void assertMethodAddsListener(final String buttonName, final Consumer<ActionListener> addListenerMethod) {
         final JButton clearBtn = (JButton) getFieldValue(buttonName);
         final int initialListeners = clearBtn.getActionListeners().length;
 
         try {
-            SwingUtilities.invokeAndWait(() -> addListenerMethod.accept(e -> {}));
+            SwingUtilities.invokeAndWait(() -> addListenerMethod.accept(e -> { }));
         } catch (InvocationTargetException | InterruptedException e) {
             throw new IllegalStateException("Failed to add listener to button: " + buttonName, e);
         }

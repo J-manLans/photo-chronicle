@@ -465,15 +465,16 @@ public final class InfoDialogTest {
 
     /**
      * Validates that the addInfoCloseBtnListener adds a listener to the close button.
-     * @throws InterruptedException
-     * @throws InvocationTargetException
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
      */
     @Test
-    void shouldHaveListener() throws InvocationTargetException, InterruptedException {
+    void shouldAttachListenerViaAddInfoCloseBtnListener() throws InvocationTargetException, InterruptedException {
         final JButton closeBtn = (JButton) getComponent("infoCloseBtn");
         final int initialListeners = closeBtn.getActionListeners().length;
 
-        SwingUtilities.invokeAndWait(() -> infoDialog.addInfoCloseBtnListener(e -> {}));
+        SwingUtilities.invokeAndWait(() -> infoDialog.addInfoCloseBtnListener(e -> { }));
 
         final int currentListeners = closeBtn.getActionListeners().length;
 

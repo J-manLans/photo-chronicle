@@ -53,7 +53,7 @@ public class ChronicleModelTest {
     private final ChronicleModel model = new ChronicleModel();
     private final Class<?> modelClass = model.getClass();
     private final String pathToTestFolder = Paths.get(
-        System.getProperty("user.dir"),"src", "test", "resources", "testImageFolder"
+        System.getProperty("user.dir"), "src", "test", "resources", "testImageFolder"
     ).toString();
     private final List<String> expectedFields = new ArrayList<>(List.of(
         "path", "writeError"
