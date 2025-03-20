@@ -4,16 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.GridBagLayout;
-import java.awt.FlowLayout;
-import java.awt.Robot;
 import java.awt.AWTException;
+import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
+import java.awt.Robot;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,13 +26,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import com.dt042g.photochronicle.controller.ChronicleController;
-import com.dt042g.photochronicle.support.AppConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import com.dt042g.photochronicle.controller.ChronicleController;
+import com.dt042g.photochronicle.support.AppConfig;
 
 /**
  * Unit tests for the {@link MiddlePanel} class in the {@link com.dt042g.photochronicle.view} package.
@@ -182,11 +185,11 @@ public class MiddlePanelTest {
         SwingUtilities.invokeAndWait(controller::initializeListeners);
 
         final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
-        final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
+        final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
         final JFileChooser fileChooser = (JFileChooser) getComponent(controller, "fileChooser");
 
         invokeRobotKeyPress(KeyEvent.VK_ENTER);
-        addAndSortBtn.doClick();
+        chooseFolderBtn.doClick();
 
         assertEquals(fileChooser.getSelectedFile().getAbsolutePath(), pathLabel.getText());
     }
@@ -208,37 +211,13 @@ public class MiddlePanelTest {
         SwingUtilities.invokeAndWait(controller::initializeListeners);
 
         final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
-        final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
+        final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
 
         pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
         invokeRobotKeyPress(KeyEvent.VK_ESCAPE);
-        addAndSortBtn.doClick();
+        chooseFolderBtn.doClick();
 
         assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
-    }
-
-    /**
-     * Ensure that the text of the add/soft button is changed to "Sort Folder" when a folder is added.
-     * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
-     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
-     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
-     * an exception.
-     */
-    @Test
-    public void shouldPassIfAddButtonRenamedSortWhenFolderIsAdded()
-            throws AWTException, NoSuchFieldException, IllegalAccessException,
-            InterruptedException, InvocationTargetException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
-
-        final JButton addAndSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
-
-        invokeRobotKeyPress(KeyEvent.VK_ENTER);
-        addAndSortBtn.doClick();
-
-        assertEquals(AppConfig.SORT_FOLDER_BUTTON, addAndSortBtn.getText());
     }
 
     /**
@@ -265,30 +244,6 @@ public class MiddlePanelTest {
         clearBtn.doClick();
 
         assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
-    }
-
-    /**
-     * Ensure that pressing the clear button resets the add/sort button.
-     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
-     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
-     * an exception.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
-     */
-    @Test
-    public void shouldPassIfClearButtonResetsTheFolderButton()
-            throws InterruptedException, InvocationTargetException,
-            NoSuchFieldException, IllegalAccessException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
-
-        final JButton addSortBtn = (JButton) getComponent(controller, "addAndSortBtn");
-        final JButton clearBtn = (JButton) getComponent(controller, "clearBtn");
-
-        addSortBtn.setText(AppConfig.SORT_FOLDER_BUTTON);
-        clearBtn.doClick();
-
-        assertEquals(AppConfig.ADD_FOLDER_BUTTON, addSortBtn.getText());
     }
 
     /*============================
@@ -337,6 +292,26 @@ public class MiddlePanelTest {
     @MethodSource("provideClassFields")
     void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
         assertTrue(Modifier.isPrivate(middlePanelClass.getDeclaredField(fieldName).getModifiers()));
+    }
+
+    /*======================
+    * Unit Tests
+    ======================*/
+
+    /**
+     * Validates that the addListenerToFolderButton adds a listener to the folder button.
+     */
+    @Test
+    void shouldAttachListenerViaAddListenerToFolderButton() {
+        assertMethodAddsListener("chooseFolderBtn", middlePanel::addListenerToFolderButton);
+    }
+
+    /**
+     * Validates that the addListenerToClearButton adds a listener to the clear button.
+     */
+    @Test
+    void shouldAttachListenerViaAddListenerToClearButton() {
+        assertMethodAddsListener("clearBtn", middlePanel::addListenerToClearButton);
     }
 
     /*============================
@@ -405,6 +380,21 @@ public class MiddlePanelTest {
         final Field field = controller.getMiddlePanel().getClass().getDeclaredField(component);
         field.setAccessible(true);
         return field.get(controller.getMiddlePanel());
+    }
+
+    private void assertMethodAddsListener(final String buttonName, final Consumer<ActionListener> addListenerMethod) {
+        final JButton clearBtn = (JButton) getFieldValue(buttonName);
+        final int initialListeners = clearBtn.getActionListeners().length;
+
+        try {
+            SwingUtilities.invokeAndWait(() -> addListenerMethod.accept(e -> { }));
+        } catch (InvocationTargetException | InterruptedException e) {
+            throw new IllegalStateException("Failed to add listener to button: " + buttonName, e);
+        }
+
+        final int currentListeners = clearBtn.getActionListeners().length;
+
+        assertEquals(initialListeners + 1, currentListeners);
     }
 }
 

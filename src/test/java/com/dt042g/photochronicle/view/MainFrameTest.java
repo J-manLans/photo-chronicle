@@ -212,7 +212,7 @@ public class MainFrameTest {
      * This ensures that the class can be instantiated.
      */
     @Test
-    void shouldPassIfConstructorModifierIsPublic(){
+    void shouldPassIfConstructorModifierIsPublic() {
         assertTrue(Modifier.isPublic(mainFrameClass.getDeclaredConstructors()[0].getModifiers()));
     }
 
