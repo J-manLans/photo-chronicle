@@ -1,9 +1,11 @@
 package com.dt042g.photochronicle.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.AWTException;
+import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
@@ -28,6 +30,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.dt042g.photochronicle.view.BottomPanel;
+import com.dt042g.photochronicle.view.InfoDialog;
+import com.dt042g.photochronicle.view.MainFrame;
 import com.dt042g.photochronicle.view.MiddlePanel;
 
 /**
@@ -55,6 +60,7 @@ public class ChronicleControllerTest {
         SwingUtilities.invokeAndWait(() -> {
             controller = new ChronicleController();
             controller.initializeListeners();
+            controller.getInfoDialog().setModal(false);
         });
         controllerClass = controller.getClass();
     }
@@ -91,7 +97,8 @@ public class ChronicleControllerTest {
 
     /**
      * Checks that all expected fields are present among the actual ones.
-     * @return A stream of dynamic tests, each testing whether an expected field exists in the ChronicleController's fields.
+     * @return A stream of dynamic tests, each testing whether an expected field exists in
+     * the ChronicleController's fields.
      */
     @TestFactory
     Stream<DynamicTest> shouldPassIfChronicleControllerHasNoMissingFields() {
@@ -141,8 +148,85 @@ public class ChronicleControllerTest {
     }
 
     /*======================
-    * Unit Tests
+    * Integration Tests
     ======================*/
+
+    /* ===== BottomPanel - InfoDialog ===== */
+
+    /**
+     * Tests that the dialog opens up when the info button is pressed.
+     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
+     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
+     * @throws NoSuchFieldException if the infoButton instance field is not present.
+     * @throws IllegalAccessException if the {@link Field} access is illegal.
+     */
+    @Test
+    void shouldOpenDialogWhenInfoButtonIsPressed()
+    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        InfoDialog infoDialog = controller.getInfoDialog();
+        clickInfoButton();
+        assertTrue(infoDialog.isVisible());
+        SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
+    }
+
+    /**
+     * Tests that the dialog opens up in the center of the MainFrame.
+     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
+     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
+     * @throws NoSuchFieldException if the infoButton instance field is not present.
+     * @throws IllegalAccessException if the {@link Field} access is illegal.
+     */
+    @Test
+    void shouldPassIfDialogOpensUpInCenterOfApp()
+    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        InfoDialog infoDialog = controller.getInfoDialog();
+        MainFrame mainFrame = controller.getMainFrame();
+
+        mainFrame.setVisible(true);
+        clickInfoButton();
+
+        final Point mainFrameTopLeftPoint = mainFrame.getLocationOnScreen();
+
+        final int frameWidth = mainFrame.getWidth();
+        final int frameHeight = mainFrame.getHeight();
+
+        final int dialogWidth =  infoDialog.getWidth();
+        final int dialogHeight =  infoDialog.getHeight();
+
+        final Point expectedTopLeftPoint = new Point(
+            Math.round(mainFrameTopLeftPoint.x + ((frameWidth - dialogWidth) / 2)),
+            Math.round(mainFrameTopLeftPoint.y + ((frameHeight - dialogHeight) / 2))
+        );
+
+        assertEquals(expectedTopLeftPoint, infoDialog.getLocationOnScreen());
+        SwingUtilities.invokeAndWait(() -> {
+            infoDialog.setVisible(false);
+            mainFrame.setVisible(false);
+        });
+    }
+
+    /**
+     * Tests that the dialog is closed when the infoCloseBtn is clicked.
+     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
+     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
+     */
+    @Test
+    void shouldPassIfDialogIsClosedWhenCloseBtnIsClicked() throws InvocationTargetException, InterruptedException {
+        final InfoDialog infoDialog = controller.getInfoDialog();
+        final JButton infoCloseBtn = (JButton) getComponent(controller.getInfoDialog(), "infoCloseBtn");
+        boolean isVisible = true;
+        clickInfoButton();
+
+        if (infoDialog.isVisible()) {
+            SwingUtilities.invokeAndWait(() -> infoCloseBtn.doClick());
+            isVisible  = infoDialog.isVisible();
+        }
+
+        assertFalse(isVisible);
+        SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
+    }
+
+    /* ===== MiddlePanel - ChronicleModel ===== */
 
     /**
      * Ensures that selecting a folder sets a path in the model.
@@ -218,6 +302,19 @@ public class ChronicleControllerTest {
             }).start();
         } catch (final AWTException e) {
             throw new IllegalStateException("Failed to initialize Robot for key press: " + key, e);
+        }
+    }
+
+    private void clickInfoButton() {
+        final BottomPanel bottomPanel = controller.getBottomPanel();
+        final JButton infoButton = (JButton) getComponent(bottomPanel, "infoButton");
+
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                infoButton.doClick();
+            });
+        } catch (InvocationTargetException | InterruptedException e) {
+            throw new IllegalStateException("Failed to perform a click on : " + infoButton, e);
         }
     }
 }
