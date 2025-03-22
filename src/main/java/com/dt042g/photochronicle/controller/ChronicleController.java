@@ -108,7 +108,12 @@ public final class ChronicleController {
 
     private void sortFolder(final String path) {
         chronicleModel.setPath(path);
-        chronicleModel.sortFolder(this::displayError);
+        chronicleModel.sortFolder(this::displayError, this::displayInformation);
+    }
+
+    private void displayInformation(final String information) {
+        infoDialog.setMessage(information);
+        infoDialog.showDialog();
     }
 
     private void displayError(final String errorMessage) {
