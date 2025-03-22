@@ -58,7 +58,7 @@ public class ChronicleModelTest {
         System.getProperty("user.dir"), "src", "test", "resources", "testImageFolder"
     ).toString();
     private final List<String> expectedFields = new ArrayList<>(List.of(
-        "path", "writeError", "eligibleFiles", "invalidFiles", "statistics"
+        "path", "writeError", "eligibleFiles", "statistics"
     ));
     private AclFileAttributeView aclView;
     private List<AclEntry> originalAcl;
@@ -380,12 +380,24 @@ public class ChronicleModelTest {
                 files.forEach(file -> {
                     final File source = new File(Paths.get(pathToSort, strYear, strMonth, file).toString());
                     final File destination = new File(Paths.get(pathToSort, file).toString());
-                    source.renameTo(destination);
+
+                    if (source.exists()) {
+                        source.renameTo(destination);
+                    }
                 });
 
-                new File(Paths.get(pathToSort, strYear, strMonth).toString()).delete();
+                final File fileMonth = new File(Paths.get(pathToSort, strYear, strMonth).toString());
+
+                if (fileMonth.exists()) {
+                    fileMonth.delete();
+                }
             });
-            new File(Paths.get(pathToSort, strYear).toString()).delete();
+
+            final File fileYear = new File(Paths.get(pathToSort, strYear).toString());
+
+            if (fileYear.exists()) {
+                fileYear.delete();
+            }
         });
     }
 
