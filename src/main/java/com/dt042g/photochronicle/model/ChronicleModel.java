@@ -26,7 +26,6 @@ public final class ChronicleModel {
     private Path path;
     private String writeError;
     private final Map<Integer, Map<Integer, List<String>>> eligibleFiles = new HashMap<>();
-    private final List<String> invalidFiles = new ArrayList<>();
 
     private enum StatsIndex {
         sortedFiles,
@@ -63,14 +62,13 @@ public final class ChronicleModel {
 
         reset();
 
-        statistics[StatsIndex.sortedFiles.ordinal()]++;
-
         try (Stream<Path> directoryContents = Files.list(path)) {
             directoryContents
                     .filter(file -> !Files.isDirectory(file))
                     .forEach(file -> detectEXIFMetadataFiles(file.toFile()));
         } catch (IOException e) {
-            displayInformation.accept(e.getMessage());
+            displayError.accept(e.getMessage());
+            return;
         }
 
         moveEligibleFiles();
@@ -85,6 +83,7 @@ public final class ChronicleModel {
                 + "Number of invalid files: "
                 + statistics[StatsIndex.invalidFiles.ordinal()] + "<br>"
                 + "</html>";
+
         displayInformation.accept(msgStatistics);
     }
 
@@ -127,7 +126,7 @@ public final class ChronicleModel {
                     .getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 
             if (exifSubIFDDirectory == null) {
-                invalidFiles.add(file.getName());
+                statistics[StatsIndex.invalidFiles.ordinal()]++;
             } else {
                 final LocalDate date = exifSubIFDDirectory.getDateOriginal()
                         .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -135,7 +134,7 @@ public final class ChronicleModel {
                 addEligibleFile(file.getName(), date.getYear(), date.getMonthValue());
             }
         } catch (ImageProcessingException | IOException e) {
-            invalidFiles.add(file.getName());
+            statistics[StatsIndex.invalidFiles.ordinal()]++;
         }
     }
 
@@ -159,8 +158,6 @@ public final class ChronicleModel {
                 "July", "August", "September", "October", "November", "December"
         };
 
-        statistics[StatsIndex.invalidFiles.ordinal()] = invalidFiles.size();
-
         eligibleFiles.forEach((year, months) -> {
             final String directoryYear = Paths.get(path.toString(), year.toString()).toString();
             final File fileYear = new File(directoryYear);
@@ -179,8 +176,8 @@ public final class ChronicleModel {
                                 statistics[StatsIndex.directoryFailures.ordinal()]++;
                             } else {
                                 files.forEach((file) ->
-                                        moveFile(Paths.get(path.toString(), file).toString(),
-                                                Paths.get(fileMonth.toString(), file).toString()));
+                                        moveFile(Paths.get(path.toString(), file),
+                                                Paths.get(fileMonth.toString(), file)));
                             }
                         }
                     });
@@ -189,20 +186,17 @@ public final class ChronicleModel {
         });
     }
 
-    private void moveFile(final String source, final String destination) {
-        final File fileSource = new File(source);
-        final File fileDestination = new File(destination);
-
-        if (fileSource.renameTo(fileDestination)) {
+    private void moveFile(final Path source, final Path destination) {
+        try {
+            Files.move(source, destination);
             statistics[StatsIndex.sortedFiles.ordinal()]++;
-        } else {
+        } catch (IOException e) {
             statistics[StatsIndex.unsortedFiles.ordinal()]++;
         }
     }
 
     private void reset() {
         eligibleFiles.clear();
-        invalidFiles.clear();
         Arrays.fill(statistics, 0);
     }
 }
