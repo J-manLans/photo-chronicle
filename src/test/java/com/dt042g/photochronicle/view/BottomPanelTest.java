@@ -150,7 +150,7 @@ public class BottomPanelTest {
      */
     @Test
     public void shouldPassIfInfoButtonIsAddedToPanel() {
-        assertEquals(JButton.class, ((JButton) getComponent("infoButton")).getClass());
+        assertEquals(JButton.class, bottomPanel.getComponent(0).getClass());
     }
 
     /*======================
