@@ -1,10 +1,12 @@
 package com.dt042g.photochronicle.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.Robot;
@@ -314,6 +316,44 @@ public class MiddlePanelTest {
         assertMethodAddsListener("clearBtn", middlePanel::addListenerToClearButton);
     }
 
+    /**
+     * Validates that the text color of the label changes via the setPathColor method.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     */
+    @Test
+    void shouldSetTextColorOnPathLabel()
+    throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, InterruptedException {
+        JLabel pathLabel = (JLabel) getComponent("pathLabel");
+        Color orgClr = pathLabel.getForeground();
+
+        SwingUtilities.invokeAndWait(() -> middlePanel.setErrorColorPath());
+
+        assertNotEquals(orgClr, pathLabel.getForeground());
+    }
+
+    /**
+     * Validates that the resetPathColor method works.
+     * @throws NoSuchFieldException if fields requested do not exist.
+     * @throws IllegalAccessException if fields cannot be accessed.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     */
+    @Test
+    void shouldResetTextColorOnPathLabel()
+    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        JLabel pathLabel = (JLabel) getComponent("pathLabel");
+
+        SwingUtilities.invokeAndWait(() -> {
+            pathLabel.setForeground(Color.PINK);
+            middlePanel.resetPathColor();
+        });
+
+        assertEquals(Color.LIGHT_GRAY, pathLabel.getForeground());
+    }
+
     /*============================
     * Helper methods
     ============================*/
@@ -380,6 +420,13 @@ public class MiddlePanelTest {
         final Field field = controller.getMiddlePanel().getClass().getDeclaredField(component);
         field.setAccessible(true);
         return field.get(controller.getMiddlePanel());
+    }
+
+    private Object getComponent(final String component)
+    throws NoSuchFieldException, IllegalAccessException {
+        final Field field = middlePanelClass.getDeclaredField(component);
+        field.setAccessible(true);
+        return field.get(middlePanel);
     }
 
     private void assertMethodAddsListener(final String buttonName, final Consumer<ActionListener> addListenerMethod) {
