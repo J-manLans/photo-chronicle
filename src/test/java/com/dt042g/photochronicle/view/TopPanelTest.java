@@ -8,9 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.FlowLayout;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +25,17 @@ import com.dt042g.photochronicle.support.AppConfig;
  * @author Daniel Berg
  */
 public class TopPanelTest {
-    private final TopPanel topPanel = new TopPanel();
+    private TopPanel topPanel;
+
+    /**
+     * Constructor of the test class, creating a new instance of the {@link TopPanel} class.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    public TopPanelTest() throws InterruptedException, InvocationTargetException {
+        SwingUtilities.invokeAndWait(() -> topPanel = new TopPanel());
+    }
 
     /**
      * Test to ensure that the class has been marked as final, preventing it to be subclassed.
