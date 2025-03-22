@@ -88,6 +88,7 @@ public final class MiddlePanel extends JPanel {
         final int result = fileChooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
+            resetPathColor();
             pathLabel.setText(fileChooser.getSelectedFile().getAbsolutePath());
             sortFolder.accept(pathLabel.getText());
         }
@@ -105,6 +106,21 @@ public final class MiddlePanel extends JPanel {
      * Used to clear the path label and reset the add/sort button.
      */
     public void clearSelection() {
+        resetPathColor();
         pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
+    }
+
+    /**
+     * Sets the color of the pathLabel to red when the chosen folder is not accessible.
+     */
+    public void setErrorColorPath() {
+        pathLabel.setForeground(Color.RED);
+    }
+
+    /**
+     * Resets the color of the pathLabel.
+     */
+    public void resetPathColor() {
+        pathLabel.setForeground(Color.LIGHT_GRAY);
     }
 }
