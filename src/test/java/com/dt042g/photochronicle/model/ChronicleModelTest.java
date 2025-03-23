@@ -378,27 +378,33 @@ public class ChronicleModelTest {
                 final String strMonth = String.format("%02d-%s", month, nameOfMonths[month - 1]);
 
                 files.forEach(file -> {
-                    final File source = new File(Paths.get(pathToSort, strYear, strMonth, file).toString());
-                    final File destination = new File(Paths.get(pathToSort, file).toString());
+                    final Path source = Paths.get(pathToSort, strYear, strMonth, file);
+                    final Path destination = Paths.get(pathToSort, file);
 
-                    if (source.exists()) {
-                        source.renameTo(destination);
+                    if (Files.exists(source)) {
+                        try {
+                            Files.move(source, destination);
+                        } catch (final IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
 
-                final File fileMonth = new File(Paths.get(pathToSort, strYear, strMonth).toString());
-
-                if (fileMonth.exists()) {
-                    fileMonth.delete();
-                }
+                deleteFolder(Paths.get(pathToSort, strYear, strMonth));
             });
 
-            final File fileYear = new File(Paths.get(pathToSort, strYear).toString());
-
-            if (fileYear.exists()) {
-                fileYear.delete();
-            }
+            deleteFolder(Paths.get(pathToSort, strYear));
         });
+    }
+
+    private void deleteFolder(final Path path) {
+        if (Files.exists(path)) {
+            try {
+                Files.delete(path);
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private boolean isEveryYearDirectoryPresent() {
