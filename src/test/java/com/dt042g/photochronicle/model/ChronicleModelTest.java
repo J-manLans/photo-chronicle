@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
@@ -25,6 +26,7 @@ import java.nio.file.attribute.AclFileAttributeView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,10 +58,22 @@ public class ChronicleModelTest {
         System.getProperty("user.dir"), "src", "test", "resources", "testImageFolder"
     ).toString();
     private final List<String> expectedFields = new ArrayList<>(List.of(
-        "path", "writeError"
+        "path", "writeError", "eligibleFiles", "statistics"
     ));
     private AclFileAttributeView aclView;
     private List<AclEntry> originalAcl;
+    private final String pathToSort = Paths.get(
+            System.getProperty("user.dir"), "src", "test", "resources", "testSort"
+    ).toString();
+    private final String[] nameOfMonths = {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+    };
+    private final Map<Integer, Map<Integer, List<String>>> testFiles = Map.of(
+            2025, Map.of(3, List.of("001.jpg", "002.jpg")),
+            2024, Map.of(8, List.of("003.jpg")),
+            2023, Map.of(6, List.of("004.jpg", "005.jpg"))
+    );
 
     /*====================
     * Setup
@@ -73,6 +87,8 @@ public class ChronicleModelTest {
             aclView = null;
         }
         model.nullifyPath();
+
+        resetTestFolder();
     }
 
     /*========================
@@ -164,7 +180,7 @@ public class ChronicleModelTest {
     @Test
     void shouldHaveAConsumerStringAsParameter() throws NoSuchMethodException {
         // Confirms the method have one parameter and that it's a consumer
-        final Method method = modelClass.getDeclaredMethod("sortFolder", Consumer.class);
+        final Method method = modelClass.getDeclaredMethod("sortFolder", Consumer.class, Consumer.class);
         final Parameter[] parameters = method.getParameters();
         Type parameterType = null;
         String parameterTypeName = null;
@@ -246,6 +262,33 @@ public class ChronicleModelTest {
         assertEquals((String) getComponent("writeError"), getErrorFromVerifyMethod());
     }
 
+    /**
+     * Ensure that all directories for the years have been created correctly.
+     */
+    @Test
+    public void shouldPassIfAllYearDirectoriesExist() {
+        performSortingTest();
+        assertTrue(isEveryYearDirectoryPresent());
+    }
+
+    /**
+     * Ensure that all directories for the months have been created correctly.
+     */
+    @Test
+    public void shouldPassIfAllMonthDirectoriesExist() {
+        performSortingTest();
+        assertTrue(isEveryMonthDirectoryPresent());
+    }
+
+    /**
+     * Ensure that all files have been moved correctly.
+     */
+    @Test
+    public void shouldPassIfFilesAreMovedCorrectly() {
+        performSortingTest();
+        assertTrue(isEveryMovedFilesPresent());
+    }
+
     /*======================
     * Helper Methods
     ======================*/
@@ -309,10 +352,100 @@ public class ChronicleModelTest {
      */
     private String getErrorFromVerifyMethod() {
         final StringBuilder errorMessage = new StringBuilder();
+        final StringBuilder information = new StringBuilder();
         final Consumer<String> displayError = errorMessage::append;
+        final Consumer<String> displayInformation = information::append;
 
-        model.sortFolder(displayError);
+        model.sortFolder(displayError, displayInformation);
 
         return errorMessage.toString();
+    }
+
+    private void performSortingTest() {
+        final StringBuilder errorMessage = new StringBuilder();
+        final StringBuilder information = new StringBuilder();
+        final Consumer<String> displayError = errorMessage::append;
+        final Consumer<String> displayInformation = information::append;
+
+        model.setPath(pathToSort);
+        model.sortFolder(displayError, displayInformation);
+    }
+
+    private void resetTestFolder() {
+        testFiles.forEach((year, months) -> {
+            final String strYear = year.toString();
+            months.forEach((month, files) -> {
+                final String strMonth = String.format("%02d-%s", month, nameOfMonths[month - 1]);
+
+                files.forEach(file -> {
+                    final Path source = Paths.get(pathToSort, strYear, strMonth, file);
+                    final Path destination = Paths.get(pathToSort, file);
+
+                    if (Files.exists(source)) {
+                        try {
+                            Files.move(source, destination);
+                        } catch (final IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                deleteFolder(Paths.get(pathToSort, strYear, strMonth));
+            });
+
+            deleteFolder(Paths.get(pathToSort, strYear));
+        });
+    }
+
+    private void deleteFolder(final Path path) {
+        if (Files.exists(path)) {
+            try {
+                Files.delete(path);
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean isEveryYearDirectoryPresent() {
+        final List<Boolean> filesExists = new ArrayList<>();
+
+        testFiles.forEach((year, months) -> {
+            final String strYear = year.toString();
+            filesExists.add(Files.exists(Paths.get(pathToSort, strYear)));
+        });
+
+        return !filesExists.contains(false);
+    }
+
+    private boolean isEveryMonthDirectoryPresent() {
+        final List<Boolean> filesExists = new ArrayList<>();
+
+        testFiles.forEach((year, months) -> {
+            final String strYear = year.toString();
+            months.forEach((month, files) -> {
+                final String strMonth = String.format("%02d-%s", month, nameOfMonths[month - 1]);
+                filesExists.add(Files.exists(Paths.get(pathToSort, strYear, strMonth)));
+            });
+        });
+
+        return !filesExists.contains(false);
+    }
+
+    private boolean isEveryMovedFilesPresent() {
+        final List<Boolean> filesExists = new ArrayList<>();
+
+        testFiles.forEach((year, months) -> {
+            final String strYear = year.toString();
+            months.forEach((month, files) -> {
+                final String strMonth = String.format("%02d-%s", month, nameOfMonths[month - 1]);
+
+                files.forEach(file -> {
+                    filesExists.add(Files.exists(Paths.get(pathToSort, strYear, strMonth, file)));
+                });
+            });
+        });
+
+        return !filesExists.contains(false);
     }
 }

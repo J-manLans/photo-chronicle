@@ -1,16 +1,40 @@
 package com.dt042g.photochronicle.model;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.dt042g.photochronicle.support.AppConfig;
 
 public final class ChronicleModel {
     private Path path;
     private String writeError;
+    private final Map<Integer, Map<Integer, List<String>>> eligibleFiles = new HashMap<>();
+
+    private enum StatsIndex {
+        sortedFiles,
+        unsortedFiles,
+        directoryFailures,
+        invalidFiles
+    }
+
+    private final int[] statistics = new int[StatsIndex.values().length];
 
     /**
      * Sets the path variable and creates various error messages depending on the path via {@link #setErrorMessages}.
@@ -21,7 +45,13 @@ public final class ChronicleModel {
         setErrorMessages();
     }
 
-    public void sortFolder(final Consumer<String> displayError) {
+    /**
+     * Used to sort images of the selected folder by looking up EXIF metadata. The images will be sorted into
+     * subdirectories based on the year and month of the original date.
+     * @param displayError callback method to display error message.
+     * @param displayInformation callback method to display information.
+     */
+    public void sortFolder(final Consumer<String> displayError, final Consumer<String> displayInformation) {
         try {
             verifyAccess();
         } catch (AccessDeniedException e) {
@@ -29,6 +59,32 @@ public final class ChronicleModel {
             displayError.accept(e.getMessage());
             return;
         }
+
+        reset();
+
+        try (Stream<Path> directoryContents = Files.list(path)) {
+            directoryContents
+                    .filter(file -> !Files.isDirectory(file))
+                    .forEach(file -> detectEXIFMetadataFiles(file.toFile()));
+        } catch (IOException e) {
+            displayError.accept(e.getMessage());
+            return;
+        }
+
+        moveEligibleFiles();
+
+        final String msgStatistics = "<html>Sorting of directory " + path + " has finished.<br>Statistics:<br>"
+                + "Number of files sorted: "
+                + statistics[StatsIndex.sortedFiles.ordinal()] + "<br>"
+                + "Number of files which couldn't be sorted: "
+                + statistics[StatsIndex.unsortedFiles.ordinal()] + "<br>"
+                + "Number of directory creation failures: "
+                + statistics[StatsIndex.directoryFailures.ordinal()] + "<br>"
+                + "Number of invalid files: "
+                + statistics[StatsIndex.invalidFiles.ordinal()] + "<br>"
+                + "</html>";
+
+        displayInformation.accept(msgStatistics);
     }
 
     /**
@@ -51,8 +107,8 @@ public final class ChronicleModel {
 
     private void setErrorMessages() {
         writeError = String.format(
-            "<html>Write access denied to folder:<br><i>%s</i>.<br>Select a different one or modify its"
-            + " permissions by right-clicking and selecting <i>Properties</i>.<html>", path
+                "<html>Write access denied to folder:<br><i>%s</i>.<br>Select a different one or modify its"
+                        + " permissions by right-clicking and selecting <i>Properties</i>.<html>", path
         );
     }
 
@@ -61,5 +117,86 @@ public final class ChronicleModel {
      */
     void nullifyPath() {
         path = null;
+    }
+
+    private void detectEXIFMetadataFiles(final File file) {
+        try {
+            final Metadata metadata = ImageMetadataReader.readMetadata(file);
+            final ExifSubIFDDirectory exifSubIFDDirectory = metadata
+                    .getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+
+            if (exifSubIFDDirectory == null) {
+                statistics[StatsIndex.invalidFiles.ordinal()]++;
+            } else {
+                final LocalDate date = exifSubIFDDirectory.getDateOriginal()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+                addEligibleFile(file.getName(), date.getYear(), date.getMonthValue());
+            }
+        } catch (ImageProcessingException | IOException e) {
+            statistics[StatsIndex.invalidFiles.ordinal()]++;
+        }
+    }
+
+    private void addEligibleFile(final String file, final int year, final int month) {
+        if (eligibleFiles.get(year) == null) {
+            final Map<Integer, List<String>> yearData = new HashMap<>();
+            eligibleFiles.put(year, yearData);
+        }
+
+        if (eligibleFiles.get(year).get(month) == null) {
+            final List<String> monthData = new ArrayList<>();
+            eligibleFiles.get(year).put(month, monthData);
+        }
+
+        eligibleFiles.get(year).get(month).add(file);
+    }
+
+    private void moveEligibleFiles() {
+        final String[] nameOfMonths = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        eligibleFiles.forEach((year, months) -> {
+            final String directoryYear = Paths.get(path.toString(), year.toString()).toString();
+            final File fileYear = new File(directoryYear);
+
+            if (!fileYear.exists()) {
+                if (!fileYear.mkdirs()) {
+                    statistics[StatsIndex.directoryFailures.ordinal()]++;
+                } else {
+                    months.forEach((month, files) -> {
+                        final String strMonth = String.format("%02d-%s", month, nameOfMonths[month - 1]);
+                        final String directoryMonth = Paths.get(directoryYear, strMonth).toString();
+                        final File fileMonth = new File(directoryMonth);
+
+                        if (!fileMonth.exists()) {
+                            if (!fileMonth.mkdirs()) {
+                                statistics[StatsIndex.directoryFailures.ordinal()]++;
+                            } else {
+                                files.forEach((file) ->
+                                        moveFile(Paths.get(path.toString(), file),
+                                                Paths.get(fileMonth.toString(), file)));
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void moveFile(final Path source, final Path destination) {
+        try {
+            Files.move(source, destination);
+            statistics[StatsIndex.sortedFiles.ordinal()]++;
+        } catch (IOException e) {
+            statistics[StatsIndex.unsortedFiles.ordinal()]++;
+        }
+    }
+
+    private void reset() {
+        eligibleFiles.clear();
+        Arrays.fill(statistics, 0);
     }
 }
