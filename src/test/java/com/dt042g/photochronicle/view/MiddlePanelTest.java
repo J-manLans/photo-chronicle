@@ -47,6 +47,7 @@ import com.dt042g.photochronicle.support.AppConfig;
 public class MiddlePanelTest {
     private MiddlePanel middlePanel;
     private Class<?> middlePanelClass;
+    private final int initialWaitTime = 250;
 
     @BeforeAll
     private void setup() throws InvocationTargetException, InterruptedException {
@@ -190,7 +191,8 @@ public class MiddlePanelTest {
         final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
         final JFileChooser fileChooser = (JFileChooser) getComponent(controller, "fileChooser");
 
-        invokeRobotKeyPress(KeyEvent.VK_ENTER);
+        invokeRobotKeyPress(initialWaitTime, KeyEvent.VK_ENTER);
+        invokeRobotKeyPress(initialWaitTime * 2, KeyEvent.VK_SPACE);
         chooseFolderBtn.doClick();
 
         assertEquals(fileChooser.getSelectedFile().getAbsolutePath(), pathLabel.getText());
@@ -216,7 +218,7 @@ public class MiddlePanelTest {
         final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
 
         pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
-        invokeRobotKeyPress(KeyEvent.VK_ESCAPE);
+        invokeRobotKeyPress(initialWaitTime, KeyEvent.VK_ESCAPE);
         chooseFolderBtn.doClick();
 
         assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
@@ -402,10 +404,8 @@ public class MiddlePanelTest {
         }
     }
 
-    private void invokeRobotKeyPress(final int key) throws AWTException {
+    private void invokeRobotKeyPress(final int initialWaitTime, final int key) throws AWTException {
         final Robot robot = new Robot();
-
-        final int initialWaitTime = 250;
 
         new Thread(() -> {
             robot.delay(initialWaitTime);
