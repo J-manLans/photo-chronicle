@@ -26,6 +26,7 @@ import com.dt042g.photochronicle.support.AppConfig;
  */
 public class TopPanelTest {
     private TopPanel topPanel;
+    private final Class<?> topPanelClass;
 
     /**
      * Constructor of the test class, creating a new instance of the {@link TopPanel} class.
@@ -35,6 +36,19 @@ public class TopPanelTest {
      */
     public TopPanelTest() throws InterruptedException, InvocationTargetException {
         SwingUtilities.invokeAndWait(() -> topPanel = new TopPanel());
+        topPanelClass = topPanel.getClass();
+    }
+
+    /*==========================
+    * Design Integrity Tests
+    ==========================*/
+
+    /**
+     * Test to ensure that the class has public access modifier.
+     */
+    @Test
+    public void shouldPassIfClassIsPublic() {
+        assertTrue(Modifier.isPublic(topPanelClass.getModifiers()));
     }
 
     /**
@@ -42,16 +56,52 @@ public class TopPanelTest {
      */
     @Test
     public void shouldPassIfClassIsFinal() {
-        assertTrue(Modifier.isFinal(TopPanel.class.getModifiers()));
+        assertTrue(Modifier.isFinal(topPanelClass.getModifiers()));
     }
 
     /**
-     * Test to ensure that the class has public access modifier.
+     * Test to ensure that the top panel has an instance field called title.
      */
     @Test
-    public void shouldPassIfClassIsPublic() {
-        assertTrue(Modifier.isPublic(TopPanel.class.getModifiers()));
+    public void shouldPassIfPanelContainsTitleLabel() {
+        assertDoesNotThrow(() -> getField("title"));
     }
+
+    /**
+     * Test to ensure that the title instance field has private access modifier.
+     */
+    @Test
+    public void shouldPassIfLabelIsPrivate() {
+        assertTrue(Modifier.isPrivate(getField("title").getModifiers()));
+    }
+
+    /**
+     * Test to ensure that the title instance field has final access modifier.
+     */
+    @Test
+    public void shouldPassIfLabelIsFinal() {
+        assertTrue(Modifier.isFinal(getField("title").getModifiers()));
+    }
+
+    /**
+     * Test to ensure that the title instance field is not static.
+     */
+    @Test
+    public void shouldPassIfLabelIsNotStatic() {
+        assertFalse(Modifier.isStatic(getField("title").getModifiers()));
+    }
+
+    /**
+     * Test to ensure that the title instance field is not null.
+     */
+    @Test
+    public void shouldPassIfLabelIsNotNull() {
+        assertNotNull(getComponent("title"));
+    }
+
+    /*===============================
+    * Component Verification Tests
+    ===============================*/
 
     /**
      * Test to ensure that the panel has a {@link FlowLayout} as its layout.
@@ -66,8 +116,7 @@ public class TopPanelTest {
      */
     @Test
     public void shouldPassIfFlowLayoutHasLeftAlignment() {
-        final FlowLayout flowLayout = (FlowLayout) topPanel.getLayout();
-        assertEquals(FlowLayout.LEFT, flowLayout.getAlignment());
+        assertEquals(FlowLayout.LEFT, ((FlowLayout) topPanel.getLayout()).getAlignment());
     }
 
     /**
@@ -75,8 +124,7 @@ public class TopPanelTest {
      */
     @Test
     public void shouldPassIfFlowLayoutHasCorrectHorizontalGap() {
-        final FlowLayout flowLayout = (FlowLayout) topPanel.getLayout();
-        assertEquals(AppConfig.FLOW_GAP, flowLayout.getHgap());
+        assertEquals(AppConfig.FLOW_GAP, ((FlowLayout) topPanel.getLayout()).getHgap());
     }
 
     /**
@@ -84,73 +132,23 @@ public class TopPanelTest {
      */
     @Test
     public void shouldPassIfFlowLayoutHasCorrectVerticalGap() {
-        final FlowLayout flowLayout = (FlowLayout) topPanel.getLayout();
-        assertEquals(AppConfig.FLOW_GAP, flowLayout.getVgap());
-    }
-
-    /**
-     * Test to ensure that the top panel has an instance field called title.
-     */
-    @Test
-    public void shouldPassIfPanelContainsTitleLabel() {
-        assertDoesNotThrow(() -> TopPanel.class.getDeclaredField("title"));
-    }
-
-    /**
-     * Test to ensure that the title instance field is not static.
-     * @throws NoSuchFieldException if the title instance field is not present.
-     */
-    @Test
-    public void shouldPassIfLabelIsNotStatic() throws NoSuchFieldException {
-        final Field field = TopPanel.class.getDeclaredField("title");
-        assertFalse(Modifier.isStatic(field.getModifiers()));
-    }
-
-    /**
-     * Test to ensure that the title instance field has private access modifier.
-     * @throws NoSuchFieldException if the title instance field is not present.
-     */
-    @Test
-    public void shouldPassIfLabelIsPrivate() throws NoSuchFieldException {
-        final Field field = TopPanel.class.getDeclaredField("title");
-        assertTrue(Modifier.isPrivate(field.getModifiers()));
-    }
-
-    /**
-     * Test to ensure that the title instance field is not null.
-     * @throws NoSuchFieldException if the title instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
-     */
-    @Test
-    public void shouldPassIfLabelIsNotNull() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = TopPanel.class.getDeclaredField("title");
-        field.setAccessible(true);
-        assertNotNull(field.get(topPanel));
+        assertEquals(AppConfig.FLOW_GAP, ((FlowLayout) topPanel.getLayout()).getVgap());
     }
 
     /**
      * Test to ensure that the title instance field is an instance of {@link JLabel}.
-     * @throws NoSuchFieldException if the title instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
     @Test
-    public void shouldPassIfLabelIsJLabel() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = TopPanel.class.getDeclaredField("title");
-        field.setAccessible(true);
-        assertEquals(JLabel.class, field.get(topPanel).getClass());
+    public void shouldPassIfLabelIsJLabel() {
+        assertEquals(JLabel.class, getComponent("title").getClass());
     }
 
     /**
      * Test to ensure that the title instance field has the correct text.
-     * @throws NoSuchFieldException if the title instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
     @Test
-    public void shouldPassIfLabelTextIsCorrect() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = TopPanel.class.getDeclaredField("title");
-        field.setAccessible(true);
-        final JLabel label = (JLabel) field.get(topPanel);
-        assertEquals(AppConfig.APP_NAME, label.getText());
+    public void shouldPassIfLabelTextIsCorrect() {
+        assertEquals(AppConfig.APP_NAME, ((JLabel) getComponent("title")).getText());
     }
 
     /**
@@ -163,14 +161,31 @@ public class TopPanelTest {
 
     /**
      * Test to ensure that the title instance field has correct font size.
-     * @throws NoSuchFieldException if the title instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
     @Test
-    public void shouldPassIfLabelHasCorrectFontSize() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = TopPanel.class.getDeclaredField("title");
-        field.setAccessible(true);
-        final JLabel label = (JLabel) field.get(topPanel);
-        assertEquals(AppConfig.TEXT_SIZE_TITLE, label.getFont().getSize());
+    public void shouldPassIfLabelHasCorrectFontSize() {
+        assertEquals(AppConfig.TEXT_SIZE_TITLE, ((JLabel) getComponent("title")).getFont().getSize());
+    }
+
+    /*======================
+    * Helper Methods
+    ======================*/
+
+    private Field getField(final String fieldName) {
+        try {
+            final Field field = topPanelClass.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (final NoSuchFieldException e) {
+            throw new IllegalArgumentException("Field " + fieldName + " don't exist", e);
+        }
+    }
+
+    private Object getComponent(final String fieldName) {
+        try {
+            return getField(fieldName).get(topPanel);
+        } catch (final IllegalAccessException e) {
+            throw new IllegalStateException("Failed to access field: " + fieldName, e);
+        }
     }
 }

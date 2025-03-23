@@ -1,19 +1,21 @@
 package com.dt042g.photochronicle.view;
 
-import com.dt042g.photochronicle.support.AppConfig;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.swing.JButton;
-import javax.swing.SwingUtilities;
 import java.awt.FlowLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import javax.swing.JButton;
+import javax.swing.SwingUtilities;
+
+import org.junit.jupiter.api.Test;
+
+import com.dt042g.photochronicle.support.AppConfig;
 
 /**
  * Unit tests for the {@link BottomPanel} class in the {@link com.dt042g.photochronicle.view} package.
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class BottomPanelTest {
     private BottomPanel bottomPanel;
+    private final Class<?> bottomPanelClass;
 
     /**
      * Constructor of the test class, creating a new instance of the {@link BottomPanel} class.
@@ -32,6 +35,19 @@ public class BottomPanelTest {
      */
     public BottomPanelTest() throws InterruptedException, InvocationTargetException {
         SwingUtilities.invokeAndWait(() -> bottomPanel = new BottomPanel());
+        bottomPanelClass = bottomPanel.getClass();
+    }
+
+    /*==========================
+    * Design Integrity Tests
+    ==========================*/
+
+    /**
+     * Test to ensure that the class has been marked as public, ensuring classes from other packages can create it.
+     */
+    @Test
+    public void shouldPassIfClassIsPublic() {
+        assertTrue(Modifier.isPublic(bottomPanelClass.getModifiers()));
     }
 
     /**
@@ -39,8 +55,44 @@ public class BottomPanelTest {
      */
     @Test
     public void shouldPassIfClassIsFinal() {
-        assertTrue(Modifier.isFinal(BottomPanel.class.getModifiers()));
+        assertTrue(Modifier.isFinal(bottomPanelClass.getModifiers()));
     }
+
+    /**
+     * Test to ensure that the infoButton field has private access modifier.
+     */
+    @Test
+    public void shouldPassIfInfoButtonIsPrivate() {
+        assertTrue(Modifier.isPrivate(getField("infoButton").getModifiers()));
+    }
+
+    /**
+     * Test to ensure that the infoButton instance field is final.
+     */
+    @Test
+    public void shouldPassIfInfoButtonIsFinal() {
+        assertTrue(Modifier.isFinal(getField("infoButton").getModifiers()));
+    }
+
+    /**
+     * Test to ensure that the bottom panel has an instance field called infoButton.
+     */
+    @Test
+    public void shouldPassIfPanelContainsInfoButtonInstanceField() {
+        assertDoesNotThrow(() -> getField("infoButton"));
+    }
+
+    /**
+     * Test to ensure that the infoButton instance field is not null.
+     */
+    @Test
+    public void shouldPassIfInfoButtonIsNotNull() {
+        assertNotNull(getComponent("infoButton"));
+    }
+
+    /*===============================
+    * Component Verification Tests
+    ===============================*/
 
     /**
      * Test to ensure that the panel has a {@link FlowLayout} as its layout.
@@ -78,68 +130,19 @@ public class BottomPanelTest {
     }
 
     /**
-     * Test to ensure that the bottom panel has an instance field called infoButton.
-     */
-    @Test
-    public void shouldPassIfPanelContainsInfoButtonInstanceField() {
-        assertDoesNotThrow(() -> BottomPanel.class.getDeclaredField("infoButton"));
-    }
-
-    /**
-     * Test to ensure that the infoButton field has private access modifier.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     */
-    @Test
-    public void shouldPassIfInfoButtonIsPrivate() throws NoSuchFieldException {
-        final Field field = BottomPanel.class.getDeclaredField("infoButton");
-        assertTrue(Modifier.isPrivate(field.getModifiers()));
-    }
-
-    /**
-     * Test to ensure that the infoButton instance field is not null.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
-     */
-    @Test
-    public void shouldPassIfInfoButtonIsNotNull() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = BottomPanel.class.getDeclaredField("infoButton");
-        field.setAccessible(true);
-        assertNotNull(field.get(bottomPanel));
-    }
-
-    /**
-     * Test to ensure that the infoButton instance field is final.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     */
-    @Test
-    public void shouldPassIfInfoButtonIsFinal() throws NoSuchFieldException {
-        final Field field = BottomPanel.class.getDeclaredField("infoButton");
-        assertTrue(Modifier.isFinal(field.getModifiers()));
-    }
-
-    /**
      * Test to ensure that the infoButton instance field is an instance of {@link JButton}.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
     @Test
-    public void shouldPassIfInfoButtonIsJButton() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = BottomPanel.class.getDeclaredField("infoButton");
-        field.setAccessible(true);
-        assertEquals(JButton.class, field.getType());
+    public void shouldPassIfInfoButtonIsJButton() {
+        assertEquals(JButton.class, getField("infoButton").getType());
     }
 
     /**
-     * Testto ensure that the infoButton instance field has the correct text.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
+     * Test to ensure that the infoButton instance field has the correct text.
      */
     @Test
-    public void shouldPassIfInfoButtonTestIsCorrect() throws NoSuchFieldException, IllegalAccessException {
-        final Field field = BottomPanel.class.getDeclaredField("infoButton");
-        field.setAccessible(true);
-        final JButton button = (JButton) field.get(bottomPanel);
-        assertEquals("Info", button.getText());
+    public void shouldPassIfInfoButtonTextIsCorrect() {
+        assertEquals("Info", ((JButton) getComponent("infoButton")).getText());
     }
 
     /**
@@ -148,5 +151,49 @@ public class BottomPanelTest {
     @Test
     public void shouldPassIfInfoButtonIsAddedToPanel() {
         assertEquals(JButton.class, bottomPanel.getComponent(0).getClass());
+    }
+
+    /*======================
+    * Unit Tests
+    ======================*/
+
+    /**
+     * Validates that the addInfoButtonListener adds a listener to the infoButton.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if invocations in {@link SwingUtilities#invokeAndWait(Runnable)} throws an
+     * exception.
+     */
+    @Test
+    void shouldAttachListenerViaAddInfoButtonListener() throws InvocationTargetException, InterruptedException {
+        final JButton infoButton = (JButton) getComponent("infoButton");
+        final int initialListeners = infoButton.getActionListeners().length;
+
+        SwingUtilities.invokeAndWait(() -> bottomPanel.addInfoButtonListener(e -> { }));
+
+        final int currentListeners = infoButton.getActionListeners().length;
+
+        assertEquals(initialListeners + 1, currentListeners);
+    }
+
+    /*======================
+    * Helper Methods
+    ======================*/
+
+    private Field getField(final String fieldName) {
+        try {
+            final Field field = bottomPanelClass.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (final NoSuchFieldException e) {
+            throw new IllegalArgumentException("Field " + fieldName + " don't exist", e);
+        }
+    }
+
+    private Object getComponent(final String fieldName) {
+        try {
+            return getField(fieldName).get(bottomPanel);
+        } catch (final IllegalAccessException e) {
+            throw new IllegalStateException("Failed to access field: " + fieldName, e);
+        }
     }
 }

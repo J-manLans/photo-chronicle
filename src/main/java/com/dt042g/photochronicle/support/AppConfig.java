@@ -65,8 +65,7 @@ public final class AppConfig {
 
     /* ===== Colors ===== */
 
-    public static final Color CLR_DARK = new Color(26, 23, 20);
-
+    /** A light theme color for uniform appearance. */
     public static final Color CLR_LIGHT = new Color(254, 253, 239);
 
     /* ===== Dimensions ===== */
@@ -84,6 +83,7 @@ public final class AppConfig {
     * Model
     =========================*/
 
+    /** A general error message used if something that shouldn't happen happens. */
     public static final String GENERAL_ERROR = "<html>Something went wrong when trying to access the folder. We are"
     + " sorry for this and will look into the issue as soon as possible<html>";
 }
