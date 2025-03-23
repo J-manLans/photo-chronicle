@@ -76,110 +76,6 @@ public class MainFrameTest {
     }
 
     /*============================
-    * Tests
-    ============================*/
-
-    /**
-     * Validates that the MainFrame has a BorderLayout.
-     */
-    @Test
-    public void shouldPassIfMainFrameHasBorderLayout() {
-        assertEquals(BorderLayout.class, mainFrame.getLayout().getClass());
-    }
-
-    /**
-     * Validates that the MainFrame's Dimension equals the one in the config file.
-     */
-    @Test
-    void shouldPassIfSizeIsCorrect() {
-        assertEquals(AppConfig.APP_DIMENSION, mainFrame.getPreferredSize());
-    }
-
-    /**
-     * Validates that the MainFrame can't be resizable.
-     */
-    @Test
-    void shouldPassIfResizableIsDisabled() {
-        assertEquals(false, mainFrame.isResizable());
-    }
-
-    /**
-     * Validates that the MainFrame's title equals the one in the config file.
-     */
-    @Test
-    void shouldPassIfTitleIsCorrect() {
-        assertEquals(AppConfig.APP_NAME, mainFrame.getTitle());
-    }
-
-    /**
-     * Validates that the application exits when the MainFrame is closed.
-     */
-    @Test
-    void shouldPassIfAppClosesOnExit() {
-        assertEquals(JFrame.EXIT_ON_CLOSE, mainFrame.getDefaultCloseOperation());
-    }
-
-    /**
-     * Validates that the MainFrame is centered in the screen upon start.
-     * @throws InvocationTargetException if the code invoked by {@link SwingUtilities#invokeAndWait(Runnable)}
-     * throws an exception
-     * @throws InterruptedException if the current thread is interrupted while waiting for the event dispatch thread
-     */
-    @Test
-    void shouldPassIfAppIsCenteredOnStart() throws InvocationTargetException, InterruptedException {
-        SwingUtilities.invokeAndWait(() -> {
-            // Collects the top left position of the MainFrame
-            mainFrame.setVisible(true);
-            Point actualTopLeftPosition = mainFrame.getLocationOnScreen();
-            mainFrame.setVisible(false);
-
-            // Gets the screen size with the taskbar taken out of the equation.
-            Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-
-            double screenWidth =  screenBounds.getWidth();
-            double screenHeight =  screenBounds.getHeight();
-
-            int frameWidth = mainFrame.getWidth();
-            int frameHeight = mainFrame.getHeight();
-
-            // Creates the expected point by rounding to the nearest integer to
-            // mimic the behavior of getLocationOnScreen.
-            Point expectedTopLeftPoint = new Point(
-                (int) Math.round((screenWidth - frameWidth)) / 2, (int) Math.round((screenHeight - frameHeight) / 2)
-            );
-
-            assertEquals(expectedTopLeftPoint, actualTopLeftPosition);
-        });
-    }
-
-    /**
-     * Checks that the topPanel have been added to the correct position.
-     */
-    @Test
-    void shouldPassIfTopPanelIsInRightPosition() {
-        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
-        assertSame(topPanel, borderLayout.getLayoutComponent(BorderLayout.NORTH));
-    }
-
-    /**
-     * Checks that the middlePanel have been added to the correct position.
-     */
-    @Test
-    void shouldPassIfMiddlePanelIsInRightPosition() {
-        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
-        assertSame(middlePanel, borderLayout.getLayoutComponent(BorderLayout.CENTER));
-    }
-
-    /**
-     * Checks that the bottomPanel have been added to the correct position.
-     */
-    @Test
-    void shouldPassIfBottomPanelIsInRightPosition() {
-        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
-        assertSame(bottomPanel, borderLayout.getLayoutComponent(BorderLayout.SOUTH));
-    }
-
-    /*============================
     * Design Integrity Tests
     ============================*/
 
@@ -225,5 +121,113 @@ public class MainFrameTest {
     void shouldPassIfConstructorParametersEqualsComponentCount() {
         int addedComponents = mainFrame.getContentPane().getComponentCount();
         assertEquals(mainFrameClass.getDeclaredConstructors()[0].getParameterCount(), addedComponents);
+    }
+
+    /*===============================
+    * Component Verification Tests
+    ===============================*/
+
+    /**
+     * Validates that the MainFrame has a BorderLayout.
+     */
+    @Test
+    public void shouldPassIfMainFrameHasBorderLayout() {
+        assertEquals(BorderLayout.class, mainFrame.getLayout().getClass());
+    }
+
+    /**
+     * Validates that the MainFrame's Dimension equals the one in the config file.
+     */
+    @Test
+    void shouldPassIfSizeIsCorrect() {
+        assertEquals(AppConfig.APP_DIMENSION, mainFrame.getPreferredSize());
+    }
+
+    /**
+     * Validates that the MainFrame can't be resizable.
+     */
+    @Test
+    void shouldPassIfResizableIsDisabled() {
+        assertEquals(false, mainFrame.isResizable());
+    }
+
+    /**
+     * Validates that the MainFrame's title equals the one in the config file.
+     */
+    @Test
+    void shouldPassIfTitleIsCorrect() {
+        assertEquals(AppConfig.APP_NAME, mainFrame.getTitle());
+    }
+
+    /**
+     * Validates that the application exits when the MainFrame is closed.
+     */
+    @Test
+    void shouldPassIfAppClosesOnExit() {
+        assertEquals(JFrame.EXIT_ON_CLOSE, mainFrame.getDefaultCloseOperation());
+    }
+
+    /**
+     * Checks that the topPanel have been added to the correct position.
+     */
+    @Test
+    void shouldPassIfTopPanelIsInRightPosition() {
+        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
+        assertSame(topPanel, borderLayout.getLayoutComponent(BorderLayout.NORTH));
+    }
+
+    /**
+     * Checks that the middlePanel have been added to the correct position.
+     */
+    @Test
+    void shouldPassIfMiddlePanelIsInRightPosition() {
+        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
+        assertSame(middlePanel, borderLayout.getLayoutComponent(BorderLayout.CENTER));
+    }
+
+    /**
+     * Checks that the bottomPanel have been added to the correct position.
+     */
+    @Test
+    void shouldPassIfBottomPanelIsInRightPosition() {
+        BorderLayout borderLayout = (BorderLayout) mainFrame.getContentPane().getLayout();
+        assertSame(bottomPanel, borderLayout.getLayoutComponent(BorderLayout.SOUTH));
+    }
+
+    /*======================
+    * Integration Test
+    ======================*/
+
+    /**
+     * Validates that the MainFrame is centered in the screen upon start.
+     * @throws InvocationTargetException if the code invoked by {@link SwingUtilities#invokeAndWait(Runnable)}
+     * throws an exception
+     * @throws InterruptedException if the current thread is interrupted while waiting for the event dispatch thread
+     */
+    @Test
+    void shouldPassIfAppIsCenteredOnStart() throws InvocationTargetException, InterruptedException {
+        SwingUtilities.invokeAndWait(() -> {
+            // Collects the top left position of the MainFrame
+            mainFrame.setVisible(true);
+            Point actualTopLeftPosition = mainFrame.getLocationOnScreen();
+            mainFrame.setVisible(false);
+
+            // Gets the screen size with the taskbar taken out of the equation.
+            Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+
+            double screenWidth =  screenBounds.getWidth();
+            double screenHeight =  screenBounds.getHeight();
+
+            int frameWidth = mainFrame.getWidth();
+            int frameHeight = mainFrame.getHeight();
+
+            // Creates the expected point by rounding to the nearest integer to
+            // mimic the behavior of getLocationOnScreen.
+            Point expectedTopLeftPoint = new Point(
+                (int) Math.round((screenWidth - frameWidth)) / 2, (int) Math.round((screenHeight - frameHeight) / 2)
+            );
+
+            assertEquals(expectedTopLeftPoint, actualTopLeftPosition);
+        });
     }
 }
