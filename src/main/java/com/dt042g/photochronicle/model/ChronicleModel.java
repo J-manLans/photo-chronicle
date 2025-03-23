@@ -4,15 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -22,9 +24,27 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.dt042g.photochronicle.support.AppConfig;
 
+/**
+ * The {@code ChronicleModel} class is responsible for organizing images in a specified folder
+ * by analyzing their EXIF metadata. It sorts images into subdirectories based on the year
+ * and month of the original date the photo was taken.
+ *
+ * <p>The class performs the following operations:
+ * <ul>
+ *     <li>Verifies access permissions for the selected folder.</li>
+ *     <li>Scans the folder for image files.</li>
+ *     <li>Extracts EXIF metadata to determine the original date.</li>
+ *     <li>Organizes images into year/month subdirectories.</li>
+ *     <li>Handles errors such as access denial, missing metadata, and directory creation failures.</li>
+ * </ul>
+ *
+ * <p>Statistics are collected on sorted, unsorted, and invalid files.
+ * The sorting process results in a summary message for display in a UI.</p>
+ *
+ * @author Joel Lansgren, Daniel Berg
+ */
 public final class ChronicleModel {
     private Path path;
-    private String writeError;
     private final Map<Integer, Map<Integer, List<String>>> eligibleFiles = new HashMap<>();
 
     private enum StatsIndex {
@@ -42,7 +62,6 @@ public final class ChronicleModel {
      */
     public void setPath(final String path) {
         this.path = Paths.get(path);
-        setErrorMessages();
     }
 
     /**
@@ -54,7 +73,7 @@ public final class ChronicleModel {
     public void sortFolder(final Consumer<String> displayError, final Consumer<String> displayInformation) {
         try {
             verifyAccess();
-        } catch (AccessDeniedException e) {
+        } catch (AccessDeniedException | NoSuchFileException | NotDirectoryException e) {
             System.err.println(e);
             displayError.accept(e.getMessage());
             return;
@@ -66,7 +85,7 @@ public final class ChronicleModel {
             directoryContents
                     .filter(file -> !Files.isDirectory(file))
                     .forEach(file -> detectEXIFMetadataFiles(file.toFile()));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             displayError.accept(e.getMessage());
             return;
         }
@@ -91,24 +110,35 @@ public final class ChronicleModel {
      * Verifies whether access to the folder is allowed.
      *
      * <p>This method checks if the path exists, is a directory, and if the current user has
-     * write permissions. It throws an {@code AccessDeniedException} if any of these checks
+     * write permissions. It throws an exception if any of these checks
      * fail.</p>
      * @throws AccessDeniedException if the access to the folder is denied
+     * @throws NoSuchFileException if the directory don't exists
+     * @throws NotDirectoryException if the path is not a directory
      */
-    void verifyAccess() throws AccessDeniedException {
-        if (path != null && Files.exists(path) && Files.isDirectory(path)) {
-            if (!Files.isWritable(path)) {
-                throw new AccessDeniedException(writeError);
-            }
-        } else {
-            throw new AccessDeniedException(AppConfig.GENERAL_ERROR);
+    void verifyAccess() throws AccessDeniedException, NoSuchFileException, NotDirectoryException {
+        if (path == null) {
+            throw new IllegalArgumentException(AppConfig.GENERAL_ERROR);
+        } else if (!Files.exists(path)) {
+            throw new NoSuchFileException(AppConfig.GENERAL_ERROR);
+        } else if (!Files.isDirectory(path)) {
+            throw new NotDirectoryException(AppConfig.GENERAL_ERROR);
+        } else if (!Files.isWritable(path)) {
+            throw new AccessDeniedException(setErrorMessage("Write"));
+        } else if (!Files.isReadable(path)) {
+            throw new AccessDeniedException(setErrorMessage("Read"));
         }
     }
 
-    private void setErrorMessages() {
-        writeError = String.format(
-                "<html>Write access denied to folder:<br><i>%s</i>.<br>Select a different one or modify its"
-                        + " permissions by right-clicking and selecting <i>Properties</i>.<html>", path
+    /**
+     * Sets an error message that defines what type of access is denied to a path.
+     * @param type the type of access that is denied
+     * @return a string in html format for nice displaying in a JDialog
+     */
+    String setErrorMessage(final String type) {
+        return String.format(
+                "<html>%s access denied to folder:<br><i>%s</i>.<br>Select a different one or modify its"
+                        + " permissions by right-clicking and selecting <i>Properties</i>.<html>", type, path
         );
     }
 
@@ -190,7 +220,7 @@ public final class ChronicleModel {
         try {
             Files.move(source, destination);
             statistics[StatsIndex.sortedFiles.ordinal()]++;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             statistics[StatsIndex.unsortedFiles.ordinal()]++;
         }
     }

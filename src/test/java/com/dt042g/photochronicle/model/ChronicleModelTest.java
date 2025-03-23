@@ -40,8 +40,6 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.dt042g.photochronicle.support.AppConfig;
-
 /**
  * Unit tests for {@link ChronicleModel}, ensuring design integrity and correct functionality.
  * @author Joel Lansgren
@@ -54,7 +52,7 @@ public class ChronicleModelTest {
         System.getProperty("user.dir"), "src", "test", "resources", "testImageFolder"
     ).toString();
     private final List<String> expectedFields = new ArrayList<>(List.of(
-        "path", "writeError", "eligibleFiles", "statistics"
+        "path", "eligibleFiles", "statistics"
     ));
     private AclFileAttributeView aclView;
     private List<AclEntry> originalAcl;
@@ -170,6 +168,19 @@ public class ChronicleModelTest {
     }
 
     /**
+     * Tests that the setErrorMessage returns the right string.
+     */
+    @Test
+    void shouldReturnCorrectErrorMessage() {
+        model.setPath("no folder");
+        assertEquals(
+            "<html>Test access denied to folder:<br><i>no folder</i>.<br>Select a different one or modify its"
+            + " permissions by right-clicking and selecting <i>Properties</i>.<html>",
+            model.setErrorMessage("Test")
+        );
+    }
+
+    /**
      * Tests that the sortFolder method have a Consumer<String> parameter and nothing else.
      * @throws NoSuchMethodException if the sortFolder method is not present.
      */
@@ -198,7 +209,7 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldThrowForNullFolder() {
-        assertThrows(AccessDeniedException.class, () -> model.verifyAccess());
+        assertThrows(IllegalArgumentException.class, () -> model.verifyAccess());
     }
 
     /**
@@ -225,7 +236,24 @@ public class ChronicleModelTest {
     @EnabledOnOs(OS.WINDOWS)
     void shouldThrowForInvalidValidFolder() {
         model.setPath(pathToTestFolder);
-        setReadOnlyAccess();
+        setFolderAccess(AclEntryPermission.WRITE_DATA);
+
+        assertThrows(AccessDeniedException.class, () -> model.verifyAccess());
+    }
+
+    /**
+     * Test that verifies the behavior for an invalid folder on Windows.
+     *
+     * This test ensures that if the folder path is set to a valid folder but the write permissions
+     * are explicitly denied for "Everyone" on Windows, an AccessDeniedException is thrown when
+     * the model's verifyAccess() method is invoked. It configures ACL (Access Control List) entries
+     * to deny write permissions through {@link #setReadOnlyAccess} and checks that the exception is properly thrown.
+     */
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    void shouldThrowForReadAccessToFolder() {
+        model.setPath(pathToTestFolder);
+        setFolderAccess(AclEntryPermission.READ_DATA);
 
         assertThrows(AccessDeniedException.class, () -> model.verifyAccess());
     }
@@ -244,18 +272,31 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldHandleEmptyPathInSortFolderMethod() {
-        assertEquals(AppConfig.GENERAL_ERROR, getErrorFromVerifyMethod());
+        assertThrows(IllegalArgumentException.class, () -> performSortingTest(null));
     }
 
     /**
      * Test that verifies the handling of a write error in the sortFolder method.
      */
     @Test
+    @EnabledOnOs(OS.WINDOWS)
     void shouldHandleWriteErrorInSortFolderMethod() {
         model.setPath(pathToTestFolder);
-        setReadOnlyAccess();
+        setFolderAccess(AclEntryPermission.WRITE_DATA);
 
-        assertEquals((String) getComponent("writeError"), getErrorFromVerifyMethod());
+        assertEquals(model.setErrorMessage("Write"), getErrorFromVerifyMethod());
+    }
+
+    /**
+     * Test that verifies the handling of a write error in the sortFolder method.
+     */
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    void shouldHandleReadErrorInSortFolderMethod() {
+        model.setPath(pathToTestFolder);
+        setFolderAccess(AclEntryPermission.READ_DATA);
+
+        assertEquals(model.setErrorMessage("Read"), getErrorFromVerifyMethod());
     }
 
     /**
@@ -263,7 +304,7 @@ public class ChronicleModelTest {
      */
     @Test
     public void shouldPassIfAllYearDirectoriesExist() {
-        performSortingTest();
+        performSortingTest(pathToSort);
         assertTrue(isEveryYearDirectoryPresent());
     }
 
@@ -272,7 +313,7 @@ public class ChronicleModelTest {
      */
     @Test
     public void shouldPassIfAllMonthDirectoriesExist() {
-        performSortingTest();
+        performSortingTest(pathToSort);
         assertTrue(isEveryMonthDirectoryPresent());
     }
 
@@ -281,7 +322,7 @@ public class ChronicleModelTest {
      */
     @Test
     public void shouldPassIfFilesAreMovedCorrectly() {
-        performSortingTest();
+        performSortingTest(pathToSort);
         assertTrue(isEveryMovedFilesPresent());
     }
 
@@ -312,7 +353,7 @@ public class ChronicleModelTest {
         }
     }
 
-    private void setReadOnlyAccess() {
+    private void setFolderAccess(final AclEntryPermission deniedAccess) {
         try {
             final Path folder = (Path) getComponent("path");
 
@@ -326,7 +367,7 @@ public class ChronicleModelTest {
             final AclEntry denyWrite = AclEntry.newBuilder()
             .setType(AclEntryType.DENY)
             .setPrincipal(FileSystems.getDefault().getUserPrincipalLookupService().lookupPrincipalByName("Everyone"))
-            .setPermissions(AclEntryPermission.WRITE_DATA, AclEntryPermission.APPEND_DATA)
+            .setPermissions(deniedAccess)
             .build();
 
             // Insert DENY first to ensure it takes precedence,
@@ -357,13 +398,13 @@ public class ChronicleModelTest {
         return errorMessage.toString();
     }
 
-    private void performSortingTest() {
+    private void performSortingTest(final String pathToFolder) {
         final StringBuilder errorMessage = new StringBuilder();
         final StringBuilder information = new StringBuilder();
         final Consumer<String> displayError = errorMessage::append;
         final Consumer<String> displayInformation = information::append;
 
-        model.setPath(pathToSort);
+        if (pathToFolder != null) { model.setPath(pathToFolder); }
         model.sortFolder(displayError, displayInformation);
     }
 
