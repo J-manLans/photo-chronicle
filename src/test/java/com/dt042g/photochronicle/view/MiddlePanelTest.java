@@ -404,11 +404,11 @@ public class MiddlePanelTest {
         }
     }
 
-    private void invokeRobotKeyPress(final int initialWaitTime, final int key) throws AWTException {
+    private void invokeRobotKeyPress(final int delay, final int key) throws AWTException {
         final Robot robot = new Robot();
 
         new Thread(() -> {
-            robot.delay(initialWaitTime);
+            robot.delay(delay);
             robot.keyPress(key);
             robot.keyRelease(key);
         }).start();

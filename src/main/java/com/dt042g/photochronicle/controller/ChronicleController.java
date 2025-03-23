@@ -117,6 +117,7 @@ public final class ChronicleController {
     }
 
     private void displayError(final String errorMessage) {
+        middlePanel.setErrorColorPath();
         infoDialog.setMessage(errorMessage);
         infoDialog.showDialog();
     }
