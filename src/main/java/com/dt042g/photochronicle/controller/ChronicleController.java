@@ -8,6 +8,10 @@ import com.dt042g.photochronicle.view.MiddlePanel;
 import com.dt042g.photochronicle.view.TopPanel;
 
 /**
+ * The {@code ChronicleController} class is responsible for acting as an intermediary between the model and view of the
+ * application. Upon instantiation the class will create the necessary model, as well as all the view classes needed to
+ * make up the graphical interface of the application.
+ *
  * @author Joel Lansgren, Daniel Berg
  */
 public final class ChronicleController {
