@@ -34,7 +34,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.dt042g.photochronicle.controller.ChronicleController;
 import com.dt042g.photochronicle.support.AppConfig;
 
 /**
@@ -47,7 +46,6 @@ import com.dt042g.photochronicle.support.AppConfig;
 public class MiddlePanelTest {
     private MiddlePanel middlePanel;
     private Class<?> middlePanelClass;
-    private final int initialWaitTime = 250;
 
     @BeforeAll
     private void setup() throws InvocationTargetException, InterruptedException {
@@ -57,6 +55,45 @@ public class MiddlePanelTest {
         middlePanelClass = middlePanel.getClass();
     }
 
+    /*============================
+    * Design Integrity Tests
+    ============================*/
+
+    /**
+     * Validates that the class is final.
+     */
+    @Test
+    void shouldPassIfClassIsPublic() {
+        assertTrue(Modifier.isPublic(middlePanelClass.getModifiers()));
+    }
+
+    /**
+     * Validates that the class is final.
+     */
+    @Test
+    void shouldPassIfClassIsFinal() {
+        assertTrue(Modifier.isFinal(middlePanelClass.getModifiers()));
+    }
+
+    /**
+     * Verifies that the class extends JPanel.
+     */
+    @Test
+    void shouldPassIfClassExtendsJPanel() {
+       assertEquals(JPanel.class, middlePanelClass.getSuperclass());
+    }
+
+    /**
+     * Verifies that all instance fields are private.
+     * @param fieldName
+     * @throws NoSuchFieldException if the field is not present.
+     */
+    @ParameterizedTest
+    @MethodSource("provideClassFields")
+    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
+        assertTrue(Modifier.isPrivate(middlePanelClass.getDeclaredField(fieldName).getModifiers()));
+    }
+
     /**
      * Validates that all instance variables are instantiated.
      * @param fieldName
@@ -64,8 +101,29 @@ public class MiddlePanelTest {
     @ParameterizedTest
     @MethodSource("provideClassFields")
     void shouldHaveInitializedFields(final String fieldName) {
-        assertNotNull(getFieldValue(fieldName));
+        assertNotNull(getComponent(fieldName));
     }
+
+    /**
+     * Verifies that MiddlePanel only have one constructor.
+     */
+    @Test
+    void shouldPassIfMiddlePanelHasOneConstructor() {
+        assertTrue(1 == middlePanelClass.getDeclaredConstructors().length);
+    }
+
+    /**
+     * Verifies that the constructor is public.
+     * @throws NoSuchMethodException if the constructor is not found in the MiddlePanel class.
+     */
+    @Test
+    void shouldPassIfConstructorModifierIsPublic() throws NoSuchMethodException {
+        assertTrue(Modifier.isPublic(middlePanelClass.getDeclaredConstructor().getModifiers()));
+    }
+
+    /*==================================
+    * Component Verification Tests
+    ==================================*/
 
     /**
      * Validates that the MiddlePanel has a GridBagLayout.
@@ -126,7 +184,7 @@ public class MiddlePanelTest {
     void shouldPassIfWrapperPanelHasFlowLayout() {
         assertEquals(
             FlowLayout.class,
-            ((JPanel) getFieldValue("labelAndClearBtnWrapper")).getLayout().getClass()
+            ((JPanel) getComponent("labelAndClearBtnWrapper")).getLayout().getClass()
         );
     }
 
@@ -136,7 +194,7 @@ public class MiddlePanelTest {
     @Test
     void shouldPassIfAJLabelIsAddedToTheWrapperPanel() {
         assertEquals(1, provideAddedComponentsCount(
-            (JPanel) getFieldValue("labelAndClearBtnWrapper"),
+            (JPanel) getComponent("labelAndClearBtnWrapper"),
                 JLabel.class
         ));
     }
@@ -147,7 +205,7 @@ public class MiddlePanelTest {
     @Test
     void shouldPassIfAJButtonIsAddedToTheWrapperPanel() {
         assertEquals(1, provideAddedComponentsCount(
-            (JPanel) getFieldValue("labelAndClearBtnWrapper"),
+            (JPanel) getComponent("labelAndClearBtnWrapper"),
             JButton.class
         ));
     }
@@ -167,33 +225,29 @@ public class MiddlePanelTest {
     void shouldPassIfJFileChooserOnlyDisplaysFolders() {
         assertEquals(
             JFileChooser.DIRECTORIES_ONLY,
-            ((JFileChooser) getFieldValue("fileChooser")).getFileSelectionMode()
+            ((JFileChooser) getComponent("fileChooser")).getFileSelectionMode()
         );
     }
+
+    /*======================
+    * Unit Tests
+    ======================*/
 
     /**
      * Ensure that a selected folder from the JFileChooser dialog updates the path label.
      * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
      * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
      * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      * an exception.
      */
     @Test
     public void shouldPassIfSelectedFolderChangesFolderLabel()
-            throws AWTException, NoSuchFieldException, IllegalAccessException,
-            InterruptedException, InvocationTargetException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
+    throws InvocationTargetException, InterruptedException, AWTException {
+        final JLabel pathLabel = (JLabel) getComponent("pathLabel");
+        final JFileChooser fileChooser = (JFileChooser) getComponent("fileChooser");
 
-        final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
-        final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
-        final JFileChooser fileChooser = (JFileChooser) getComponent(controller, "fileChooser");
-
-        invokeRobotKeyPress(initialWaitTime, KeyEvent.VK_ENTER);
-        invokeRobotKeyPress(initialWaitTime * 2, KeyEvent.VK_SPACE);
-        chooseFolderBtn.doClick();
+        invokeRobotKeyPress(KeyEvent.VK_ENTER);
+        SwingUtilities.invokeAndWait(() -> middlePanel.showFolderSelectionDialog(string -> { }));
 
         assertEquals(fileChooser.getSelectedFile().getAbsolutePath(), pathLabel.getText());
     }
@@ -201,27 +255,43 @@ public class MiddlePanelTest {
     /**
      * Ensure that cancelling a selection of folder does not modify the path label.
      * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
      * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
      * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      * an exception.
      */
     @Test
     public void shouldPassIfCancelFolderSelectionDoesNotModifyLabel()
-            throws AWTException, NoSuchFieldException, IllegalAccessException,
-            InterruptedException, InvocationTargetException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
+    throws InvocationTargetException, InterruptedException, AWTException {
+        final JLabel pathLabel = (JLabel) getComponent("pathLabel");
 
-        final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
-        final JButton chooseFolderBtn = (JButton) getComponent(controller, "chooseFolderBtn");
+        invokeRobotKeyPress(KeyEvent.VK_ESCAPE);
+        SwingUtilities.invokeAndWait(() -> {
+            pathLabel.setText(AppConfig.CHOOSE_FOLDER);
+            middlePanel.showFolderSelectionDialog(string -> { });
+        });
 
-        pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
-        invokeRobotKeyPress(initialWaitTime, KeyEvent.VK_ESCAPE);
-        chooseFolderBtn.doClick();
+        assertEquals(AppConfig.CHOOSE_FOLDER, pathLabel.getText());
+    }
 
-        assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
+    /**
+     * Ensure that cancelling a selection of folder does not modify the path label.
+     * @throws AWTException if {@link MiddlePanelTest#invokeRobotKeyPress(int)} cannot instantiate {@link Robot}.
+     * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
+     * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
+     * an exception.
+     */
+    @Test
+    public void shouldPassIfFolderSelectionRunsTheConsumer()
+    throws InvocationTargetException, InterruptedException, AWTException {
+        final JLabel pathLabel = (JLabel) getComponent("pathLabel");
+        final String testString = "test string";
+
+        invokeRobotKeyPress(KeyEvent.VK_ENTER);
+        SwingUtilities.invokeAndWait(() -> {
+            middlePanel.showFolderSelectionDialog(string -> { pathLabel.setText(testString); });
+        });
+
+        assertEquals(testString, pathLabel.getText());
     }
 
     /**
@@ -229,78 +299,19 @@ public class MiddlePanelTest {
      * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
      * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      * an exception.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
      */
     @Test
-    public void shouldPassIfClearButtonResetsThePathLabel()
-            throws InterruptedException, InvocationTargetException,
-            NoSuchFieldException, IllegalAccessException {
-        final ChronicleController controller = new ChronicleController();
-        SwingUtilities.invokeAndWait(controller::initializeListeners);
-
-        final JLabel pathLabel = (JLabel) getComponent(controller, "pathLabel");
-        final JButton clearBtn = (JButton) getComponent(controller, "clearBtn");
-
+    public void shouldPassIfClearButtonResetsThePathLabel() throws InvocationTargetException, InterruptedException {
+        final JLabel pathLabel = (JLabel) getComponent("pathLabel");
         final String dummy = "C:\\Foo\\Bar\\";
 
-        pathLabel.setText(dummy);
-        clearBtn.doClick();
+        SwingUtilities.invokeAndWait(() -> {
+            pathLabel.setText(dummy);
+            middlePanel.clearSelection();
+        });
 
-        assertEquals(AppConfig.NO_FOLDER_SELECTED, pathLabel.getText());
+        assertEquals(AppConfig.CHOOSE_FOLDER, pathLabel.getText());
     }
-
-    /*============================
-    * Design Integrity Tests
-    ============================*/
-
-    /**
-     * Verifies that MiddlePanel only have one constructor.
-     */
-    @Test
-    void shouldPassIfMiddlePanelHasOneConstructor() {
-        assertTrue(1 == middlePanelClass.getDeclaredConstructors().length);
-    }
-
-    /**
-     * Verifies that the constructor is public.
-     * @throws NoSuchMethodException if the constructor is not found in the MiddlePanel class.
-     */
-    @Test
-    void shouldPassIfConstructorModifierIsPublic() throws NoSuchMethodException {
-        assertTrue(Modifier.isPublic(middlePanelClass.getDeclaredConstructor().getModifiers()));
-    }
-
-    /**
-     * Validates that the class is final.
-     */
-    @Test
-    void shouldPassIfClassIsFinal() {
-        assertTrue(Modifier.isFinal(middlePanelClass.getModifiers()));
-    }
-
-    /**
-     * Verifies that the class extends JPanel.
-     */
-    @Test
-    void shouldPassIfClassExtendsJPanel() {
-       assertEquals(JPanel.class, middlePanelClass.getSuperclass());
-    }
-
-    /**
-     * Verifies that all instance fields are private.
-     * @param fieldName
-     * @throws NoSuchFieldException if the field is not present.
-     */
-    @ParameterizedTest
-    @MethodSource("provideClassFields")
-    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
-        assertTrue(Modifier.isPrivate(middlePanelClass.getDeclaredField(fieldName).getModifiers()));
-    }
-
-    /*======================
-    * Unit Tests
-    ======================*/
 
     /**
      * Validates that the addListenerToFolderButton adds a listener to the folder button.
@@ -319,17 +330,14 @@ public class MiddlePanelTest {
     }
 
     /**
-     * Validates that the text color of the label changes via the setPathColor method.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
+     * Validates that the text color of the label changes via the setErrorColorPath method.
      * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
      * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      */
     @Test
-    void shouldSetTextColorOnPathLabel()
-    throws NoSuchFieldException, IllegalAccessException, InvocationTargetException, InterruptedException {
-        JLabel pathLabel = (JLabel) getComponent("pathLabel");
-        Color orgClr = pathLabel.getForeground();
+    void shouldSetTextColorOnPathLabel() throws InvocationTargetException, InterruptedException {
+        final JLabel pathLabel = (JLabel) getComponent("pathLabel");
+        final Color orgClr = pathLabel.getForeground();
 
         SwingUtilities.invokeAndWait(() -> middlePanel.setErrorColorPath());
 
@@ -338,22 +346,19 @@ public class MiddlePanelTest {
 
     /**
      * Validates that the resetPathColor method works.
-     * @throws NoSuchFieldException if fields requested do not exist.
-     * @throws IllegalAccessException if fields cannot be accessed.
      * @throws InterruptedException if {@link SwingUtilities#invokeAndWait(Runnable)} is interrupted.
      * @throws InvocationTargetException if method inside {@link SwingUtilities#invokeAndWait(Runnable)} throws
      */
     @Test
-    void shouldResetTextColorOnPathLabel()
-    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        JLabel pathLabel = (JLabel) getComponent("pathLabel");
+    void shouldResetTextColorOnPathLabel() throws InvocationTargetException, InterruptedException {
+        final JLabel pathLabel = (JLabel) getComponent("pathLabel");
 
         SwingUtilities.invokeAndWait(() -> {
             pathLabel.setForeground(Color.PINK);
             middlePanel.resetPathColor();
         });
 
-        assertEquals(Color.LIGHT_GRAY, pathLabel.getForeground());
+        assertEquals(AppConfig.CLR_PATH_LABEL, pathLabel.getForeground());
     }
 
     /*============================
@@ -382,6 +387,24 @@ public class MiddlePanelTest {
         .map(Field::getName);
     }
 
+    private Field getField(final String fieldName) {
+        try {
+            final Field field = middlePanelClass.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (final NoSuchFieldException e) {
+            throw new IllegalArgumentException("Field " + fieldName + " don't exist", e);
+        }
+    }
+
+    private Object getComponent(final String fieldName) {
+        try {
+            return getField(fieldName).get(middlePanel);
+        } catch (final IllegalAccessException e) {
+            throw new IllegalStateException("Failed to access field: " + fieldName, e);
+        }
+    }
+
     /**
      * Counts the occurrences of a specific UI component type within a given JPanel.
      * @param panel The JPanel in which to count the occurrences of the specified component type.
@@ -394,43 +417,19 @@ public class MiddlePanelTest {
         .count();
     }
 
-    private Object getFieldValue(final String fieldName)  {
-        try {
-            final Field field = middlePanelClass.getDeclaredField(fieldName); // Get the field
-            field.setAccessible(true); // Allow access to private/final fields
-            return field.get(middlePanel); // Get the object from the field
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new RuntimeException("Failed to access field: " + fieldName, e);
-        }
-    }
-
-    private void invokeRobotKeyPress(final int delay, final int key) throws AWTException {
+    private void invokeRobotKeyPress(final int key) throws AWTException {
         final Robot robot = new Robot();
+        final int initialWaitTime = 250;
 
         new Thread(() -> {
-            robot.delay(delay);
+            robot.delay(initialWaitTime);
             robot.keyPress(key);
             robot.keyRelease(key);
         }).start();
     }
 
-    private Object getComponent(
-            final ChronicleController controller, final String component)
-            throws NoSuchFieldException, IllegalAccessException {
-        final Field field = controller.getMiddlePanel().getClass().getDeclaredField(component);
-        field.setAccessible(true);
-        return field.get(controller.getMiddlePanel());
-    }
-
-    private Object getComponent(final String component)
-    throws NoSuchFieldException, IllegalAccessException {
-        final Field field = middlePanelClass.getDeclaredField(component);
-        field.setAccessible(true);
-        return field.get(middlePanel);
-    }
-
     private void assertMethodAddsListener(final String buttonName, final Consumer<ActionListener> addListenerMethod) {
-        final JButton clearBtn = (JButton) getFieldValue(buttonName);
+        final JButton clearBtn = (JButton) getComponent(buttonName);
         final int initialListeners = clearBtn.getActionListeners().length;
 
         try {
