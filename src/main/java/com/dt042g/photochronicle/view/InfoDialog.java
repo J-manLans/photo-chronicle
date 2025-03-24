@@ -10,7 +10,6 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import com.dt042g.photochronicle.support.AppConfig;
@@ -24,7 +23,6 @@ import com.dt042g.photochronicle.support.AppConfig;
  */
 public final class InfoDialog extends JDialog {
     private final GridBagConstraints gbc = new GridBagConstraints();
-    private final JPanel infoDialogPanel = new JPanel(new GridBagLayout());
     private final JLabel infoMessage = new JLabel(AppConfig.HTML_INFO_LABEL);
     private final JButton infoCloseBtn = new JButton("Close");
 
@@ -41,16 +39,18 @@ public final class InfoDialog extends JDialog {
     public InfoDialog(final JFrame mainFrame) {
         super(mainFrame, true);
 
+        setLayout(new GridBagLayout());
+
         // Configure dialog appearance
         setSize(AppConfig.DIALOG_DIMENSION);
         setUndecorated(true);
-        infoDialogPanel.setBorder(new LineBorder(Color.DARK_GRAY));
+        getRootPane().setBorder(new LineBorder(Color.DARK_GRAY));
 
         // Configure layout and add components
         gbc.gridy = 0;
         gbc.insets = new Insets(AppConfig.FLOW_GAP, AppConfig.FLOW_GAP, AppConfig.FLOW_GAP, AppConfig.FLOW_GAP);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        infoDialogPanel.add(infoMessage, gbc);
+        add(infoMessage, gbc);
 
         gbc.gridy++;
         gbc.weightx = 1;
@@ -58,9 +58,7 @@ public final class InfoDialog extends JDialog {
         gbc.insets = new Insets(0, 0, AppConfig.FLOW_GAP, AppConfig.FLOW_GAP);
         gbc.anchor = GridBagConstraints.SOUTHEAST;
         gbc.fill = GridBagConstraints.NONE;
-        infoDialogPanel.add(infoCloseBtn, gbc);
-
-        add(infoDialogPanel);
+        add(infoCloseBtn, gbc);
     }
 
     /**
