@@ -33,7 +33,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.dt042g.photochronicle.controller.ChronicleController;
 import com.dt042g.photochronicle.support.AppConfig;
 
 /**
@@ -56,7 +55,7 @@ public final class InfoDialogTest {
     @BeforeAll
     private void setup() throws InvocationTargetException, InterruptedException {
         SwingUtilities.invokeAndWait(() -> {
-            infoDialog = new ChronicleController().getInfoDialog();
+            infoDialog = new InfoDialog(new MainFrame(new TopPanel(), new MiddlePanel(), new BottomPanel()));
             infoDialog.setModal(false);
         });
         infoDialogClass = infoDialog.getClass();

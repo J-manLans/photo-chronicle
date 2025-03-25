@@ -68,6 +68,7 @@ public final class AppConfig {
     /** A light theme color for uniform appearance. */
     public static final Color CLR_LIGHT = new Color(254, 253, 239);
 
+    /** A light gray color for the text of the pathLabel. */
     public static final Color CLR_PATH_LABEL = Color.LIGHT_GRAY;
 
     /* ===== Dimensions ===== */
@@ -79,7 +80,7 @@ public final class AppConfig {
     public static final Dimension APP_DIMENSION = new Dimension(900, 600);
 
     /** A dimension for JDialogs. */
-    public static final Dimension DIALOG_DIMENSION = new Dimension(400, 220);
+    public static final Dimension DIALOG_DIMENSION = new Dimension(400, 270);
 
     /*=========================
     * Model

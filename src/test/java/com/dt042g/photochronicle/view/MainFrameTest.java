@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import com.dt042g.photochronicle.controller.ChronicleController;
 import com.dt042g.photochronicle.support.AppConfig;
 
 /**
@@ -36,7 +35,6 @@ import com.dt042g.photochronicle.support.AppConfig;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MainFrameTest {
-    private ChronicleController controller;
     private MainFrame mainFrame;
     private JPanel topPanel;
     private JPanel middlePanel;
@@ -47,30 +45,13 @@ public class MainFrameTest {
     * Setup
     ============================*/
 
-    /**
-     * Sets up the test environment before all tests are run.
-     *
-     * <p>This method is executed once before any of the tests in the class.
-     * It initializes the {@link ChronicleController} and retrieves the necessary components
-     * for the tests. The {@link MainFrame} and associated panels (top, middle, bottom) are
-     * also initialized and stored for use in the test methods.</p>
-     *
-     * <p>The method ensures that all Swing components are initialized on the Event Dispatch Thread
-     * by using {@link SwingUtilities#invokeAndWait(Runnable)}. This is critical to avoid issues
-     * related to thread safety in Swing testing.</p>
-     *
-     * @throws InvocationTargetException if the code invoked by {@link SwingUtilities#invokeAndWait(Runnable)}
-     * throws an exception
-     * @throws InterruptedException if the current thread is interrupted while waiting for the event dispatch thread
-     */
     @BeforeAll
     private void setup() throws InvocationTargetException, InterruptedException {
         SwingUtilities.invokeAndWait(() -> {
-            controller = new ChronicleController();
-            mainFrame = controller.getMainFrame();
-            topPanel = controller.getTopPanel();
-            middlePanel = controller.getMiddlePanel();
-            bottomPanel = controller.getBottomPanel();
+            topPanel = new TopPanel();
+            middlePanel = new MiddlePanel();
+            bottomPanel = new BottomPanel();
+            mainFrame = new MainFrame(topPanel, middlePanel, bottomPanel);
         });
         mainFrameClass = mainFrame.getClass();
     }

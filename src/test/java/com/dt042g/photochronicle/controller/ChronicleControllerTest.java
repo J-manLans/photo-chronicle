@@ -5,16 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.AWTException;
+import java.awt.Color;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +35,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.dt042g.photochronicle.model.ChronicleModel;
+import com.dt042g.photochronicle.support.AppConfig;
 import com.dt042g.photochronicle.view.BottomPanel;
 import com.dt042g.photochronicle.view.InfoDialog;
 import com.dt042g.photochronicle.view.MainFrame;
@@ -47,6 +54,11 @@ import com.dt042g.photochronicle.view.MiddlePanel;
 public class ChronicleControllerTest {
     private ChronicleController controller;
     private Class<?> controllerClass;
+    private MainFrame mainFrame;
+    private MiddlePanel middlePanel;
+    private BottomPanel bottomPanel;
+    private InfoDialog infoDialog;
+    private ChronicleModel chronicleModel;
     private final List<String> expectedFields = new ArrayList<>(List.of(
         "topPanel", "middlePanel", "bottomPanel", "mainFrame", "infoDialog", "chronicleModel"
     ));
@@ -56,11 +68,17 @@ public class ChronicleControllerTest {
     ======================*/
 
     @BeforeAll
-    private void setup() throws InvocationTargetException, InterruptedException {
-        SwingUtilities.invokeAndWait(() -> {
+    private void setup() {
+        runOnEDT(() -> {
             controller = new ChronicleController();
             controller.initializeListeners();
-            controller.getInfoDialog().setModal(false);
+            mainFrame = (MainFrame) getComponent(controller, "mainFrame");
+            middlePanel = (MiddlePanel) getComponent(controller, "middlePanel");
+            bottomPanel = (BottomPanel) getComponent(controller, "bottomPanel");
+            infoDialog = (InfoDialog) getComponent(controller, "infoDialog");
+            chronicleModel = (ChronicleModel) getComponent(controller, "chronicleModel");
+
+            infoDialog.setModal(false);
         });
         controllerClass = controller.getClass();
     }
@@ -113,12 +131,11 @@ public class ChronicleControllerTest {
     /**
      * Test to ensure that all fields have private access modifier.
      * @param fieldName the name of the instance field.
-     * @throws NoSuchFieldException if an instance field is not present.
      */
     @ParameterizedTest
     @MethodSource("provideClassFields")
-    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) throws NoSuchFieldException {
-        assertTrue(Modifier.isPrivate(controllerClass.getDeclaredField(fieldName).getModifiers()));
+    void shouldPassIfAllInstanceFieldsArePrivate(final String fieldName) {
+        assertTrue(Modifier.isPrivate(getField(controllerClass, fieldName).getModifiers()));
     }
 
     /**
@@ -143,8 +160,25 @@ public class ChronicleControllerTest {
      * @throws NoSuchMethodException if the constructor is not found in the ChronicleController class.
      */
     @Test
-    void shouldPassIfConstructorParametersEqualsComponentCount() throws NoSuchMethodException {
+    void shouldPassIfConstructorTakeNoParameters() throws NoSuchMethodException {
         assertEquals(0, controllerClass.getDeclaredConstructor().getParameterCount());
+    }
+
+    /*======================
+    * Unit Tests
+    ======================*/
+
+    /**
+     * Tests that the showMainFrame method makes the main frame visible.
+     */
+    @Test
+    void shouldShowMainframe() {
+        runOnEDT(() -> {
+            mainFrame.setVisible(false);
+            controller.showMainFrame();
+            assertTrue(mainFrame.isVisible());
+            mainFrame.setVisible(false);
+        });
     }
 
     /*======================
@@ -155,35 +189,31 @@ public class ChronicleControllerTest {
 
     /**
      * Tests that the dialog opens up when the info button is pressed.
-     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
-     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
     @Test
-    void shouldOpenDialogWhenInfoButtonIsPressed()
-    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        InfoDialog infoDialog = controller.getInfoDialog();
-        clickInfoButton();
+    void shouldOpenDialogWhenInfoButtonIsPressed() {
+        runOnEDT(() -> ((JButton) getComponent(bottomPanel, "infoButton")).doClick());
         assertTrue(infoDialog.isVisible());
-        SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
+        runOnEDT(() -> infoDialog.setVisible(false));
     }
 
     /**
      * Tests that the dialog opens up in the center of the MainFrame.
-     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
-     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
-     * @throws NoSuchFieldException if the infoButton instance field is not present.
-     * @throws IllegalAccessException if the {@link Field} access is illegal.
      */
     @Test
-    void shouldPassIfDialogOpensUpInCenterOfApp()
-    throws InvocationTargetException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        InfoDialog infoDialog = controller.getInfoDialog();
-        MainFrame mainFrame = controller.getMainFrame();
+    void shouldPassIfDialogOpensUpInCenterOfApp() {
+        final Random randomizer = new Random();
+        final Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        final int availableScreenWidth =  (int) screenBounds.getWidth() - mainFrame.getWidth();
+        final int availableScreenHeight =  (int) screenBounds.getHeight() - mainFrame.getHeight();
+        final int x = randomizer.nextInt(availableScreenWidth);
+        final int y = randomizer.nextInt(availableScreenHeight);
 
-        mainFrame.setVisible(true);
-        clickInfoButton();
+        runOnEDT(() -> {
+            mainFrame.setLocation(x, y);
+            mainFrame.setVisible(true);
+            ((JButton) getComponent(bottomPanel, "infoButton")).doClick();
+        });
 
         final Point mainFrameTopLeftPoint = mainFrame.getLocationOnScreen();
 
@@ -199,7 +229,7 @@ public class ChronicleControllerTest {
         );
 
         assertEquals(expectedTopLeftPoint, infoDialog.getLocationOnScreen());
-        SwingUtilities.invokeAndWait(() -> {
+        runOnEDT(() -> {
             infoDialog.setVisible(false);
             mainFrame.setVisible(false);
         });
@@ -207,23 +237,19 @@ public class ChronicleControllerTest {
 
     /**
      * Tests that the dialog is closed when the infoCloseBtn is clicked.
-     * @throws InvocationTargetException If the method invoked by reflection throws an exception.
-     * @throws InterruptedException If the thread is interrupted while waiting for the EDT to process the action.
      */
     @Test
-    void shouldPassIfDialogIsClosedWhenCloseBtnIsClicked() throws InvocationTargetException, InterruptedException {
-        final InfoDialog infoDialog = controller.getInfoDialog();
-        final JButton infoCloseBtn = (JButton) getComponent(controller.getInfoDialog(), "infoCloseBtn");
+    void shouldPassIfDialogIsClosedWhenCloseBtnIsClicked() {
         boolean isVisible = true;
-        clickInfoButton();
+        runOnEDT(() -> ((JButton) getComponent(bottomPanel, "infoButton")).doClick());
 
         if (infoDialog.isVisible()) {
-            SwingUtilities.invokeAndWait(() -> infoCloseBtn.doClick());
+            runOnEDT(() -> ((JButton) getComponent(infoDialog, "infoCloseBtn")).doClick());
             isVisible  = infoDialog.isVisible();
         }
 
         assertFalse(isVisible);
-        SwingUtilities.invokeAndWait(() -> infoDialog.setVisible(false));
+        runOnEDT(() -> infoDialog.setVisible(false));
     }
 
     /* ===== MiddlePanel - ChronicleModel ===== */
@@ -233,9 +259,10 @@ public class ChronicleControllerTest {
      */
     @Test
     void shouldSetPathInModelWhenSelectingFolder() {
-        clickChooseFolderWithKeyAction(KeyEvent.VK_ENTER);
-        final JLabel pathLabel = (JLabel) getComponent(controller.getMiddlePanel(), "pathLabel");
-        final Path path = (Path) getComponent(controller.getChronicleModel(), "path");
+        invokeRobotKeyPress(KeyEvent.VK_ENTER);
+        runOnEDT(() -> ((JButton) getComponent(middlePanel, "chooseFolderBtn")).doClick());
+        final JLabel pathLabel = (JLabel) getComponent(middlePanel, "pathLabel");
+        final Path path = (Path) getComponent(chronicleModel, "path");
 
         assertEquals(pathLabel.getText(), path.toString());
     }
@@ -245,8 +272,58 @@ public class ChronicleControllerTest {
      */
     @Test
     void shouldNotSetPathInModelWhenCancelingSelectingFolder() {
-        clickChooseFolderWithKeyAction(KeyEvent.VK_ESCAPE);
-        assertEquals(null, getComponent(controller.getChronicleModel(), "path"));
+        invokeRobotKeyPress(KeyEvent.VK_ESCAPE);
+        runOnEDT(() -> ((JButton) getComponent(middlePanel, "chooseFolderBtn")).doClick());
+        assertEquals(null, getComponent(chronicleModel, "path"));
+    }
+
+    /* ===== ChronicleModel - InfoDialog ===== */
+
+    /**
+     * Ensures that a error message is displayed in the info dialog for a path that is not a folder.
+     */
+    @Test
+    void shouldDisplayErrorDialogWithGeneralErrorMessage() {
+        runOnEDT(() -> {
+            controller.sortFolder("not-a-folder");
+            assertEquals(
+                AppConfig.GENERAL_ERROR,
+                ((JLabel) getComponent(infoDialog, "infoMessage")).getText()
+            );
+            infoDialog.setVisible(false);
+            ((JLabel) getComponent(middlePanel, "pathLabel")).setForeground(AppConfig.CLR_PATH_LABEL);
+        });
+    }
+
+    /**
+     * Ensures that the pathLabel turns red when a path generates an error.
+     */
+    @Test
+    void shouldColorPathLabelRedWhenFaultyPathIsGiven() {
+        runOnEDT(() -> {
+            controller.sortFolder("not-a-folder");
+            assertEquals(Color.RED, ((JLabel) getComponent(middlePanel, "pathLabel")).getForeground());
+            infoDialog.setVisible(false);
+            ((JLabel) getComponent(middlePanel, "pathLabel")).setForeground(AppConfig.CLR_PATH_LABEL);
+        });
+    }
+
+    /**
+     * Ensures that a info message is displayed in the info dialog for a path that is a valid folder.
+     */
+    @Test
+    void shouldDisplayInformationDialogIfSortingGoesWell() {
+        final String pathToTestFolder = Paths.get(
+            System.getProperty("user.dir"), "src", "test", "resources", "testImageFolder"
+        ).toString();
+
+        runOnEDT(() -> {
+            controller.sortFolder(pathToTestFolder);
+            assertTrue(((JLabel) getComponent(infoDialog, "infoMessage")).getText().contains(
+                "<html>Sorting of directory "
+            ));
+            infoDialog.setVisible(false);
+        });
     }
 
     /*======================
@@ -276,23 +353,9 @@ public class ChronicleControllerTest {
         }
     }
 
-    private void clickChooseFolderWithKeyAction(final int key) {
-        final MiddlePanel middlePanel = controller.getMiddlePanel();
-        final JButton chooseFolderBtn = (JButton) getComponent(middlePanel, "chooseFolderBtn");
-
-        invokeRobotKeyPress(key);
-
-        try {
-            SwingUtilities.invokeAndWait(() -> chooseFolderBtn.doClick());
-        } catch (InvocationTargetException | InterruptedException e) {
-            throw new IllegalStateException("Failed to perform a click on : " + chooseFolderBtn, e);
-        }
-    }
-
     private void invokeRobotKeyPress(final int key) {
         try {
             final Robot robot =  new Robot();
-
             final int initialWaitTime = 250;
 
             new Thread(() -> {
@@ -305,16 +368,16 @@ public class ChronicleControllerTest {
         }
     }
 
-    private void clickInfoButton() {
-        final BottomPanel bottomPanel = controller.getBottomPanel();
-        final JButton infoButton = (JButton) getComponent(bottomPanel, "infoButton");
-
+    private void runOnEDT(final Runnable action) {
         try {
             SwingUtilities.invokeAndWait(() -> {
-                infoButton.doClick();
+                action.run();
             });
-        } catch (InvocationTargetException | InterruptedException e) {
-            throw new IllegalStateException("Failed to perform a click on : " + infoButton, e);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Thread was interrupted while executing action on EDT.", e);
+        } catch (final InvocationTargetException e) {
+            throw new IllegalStateException("Failed to execute action on the EDT: " + action, e);
         }
     }
 }
