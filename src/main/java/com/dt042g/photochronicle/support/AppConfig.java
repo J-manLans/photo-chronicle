@@ -38,7 +38,7 @@ public final class AppConfig {
     + " the same button that now says <i>Sort Folder</i>, and the folder will be sorted.</p></html>";
 
     /** String to be displayed when no folder has been selected. */
-    public static final String NO_FOLDER_SELECTED = "Choose image folder";
+    public static final String CHOOSE_FOLDER = "Choose image folder";
 
     /** Label of folder button when its adding folder. */
     public static final String ADD_FOLDER_BUTTON = "Add Folder";
@@ -67,6 +67,8 @@ public final class AppConfig {
 
     /** A light theme color for uniform appearance. */
     public static final Color CLR_LIGHT = new Color(254, 253, 239);
+
+    public static final Color CLR_PATH_LABEL = Color.LIGHT_GRAY;
 
     /* ===== Dimensions ===== */
 

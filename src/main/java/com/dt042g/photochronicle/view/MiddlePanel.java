@@ -30,7 +30,7 @@ import com.dt042g.photochronicle.support.AppConfig;
 public final class MiddlePanel extends JPanel {
     private final GridBagConstraints gbc = new GridBagConstraints();
     private final JPanel labelAndClearBtnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-    private final JLabel pathLabel = new JLabel(AppConfig.NO_FOLDER_SELECTED);
+    private final JLabel pathLabel = new JLabel(AppConfig.CHOOSE_FOLDER);
     private final JButton clearBtn = new JButton("Clear");
     private final JButton chooseFolderBtn = new JButton("Choose Folder");
     private final JFileChooser fileChooser = new JFileChooser();
@@ -55,14 +55,14 @@ public final class MiddlePanel extends JPanel {
             AppConfig.PADDING_FOR_PATH_LABEL
         ));
         pathLabel.setFont(new Font("Monospace", Font.ITALIC, AppConfig.TEXT_SIZE_NORMAL));
-        pathLabel.setForeground(Color.LIGHT_GRAY);
+        pathLabel.setForeground(AppConfig.CLR_PATH_LABEL);
         pathLabel.setPreferredSize(
             new Dimension(AppConfig.FOLDER_PATH_WIDTH, (int) chooseFolderBtn.getPreferredSize().getHeight())
         );
 
         // Sets up the fileChooser
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Pick an image folder");
+        fileChooser.setDialogTitle(AppConfig.CHOOSE_FOLDER);
 
         // Adds components to panels
         labelAndClearBtnWrapper.add(pathLabel);
@@ -73,18 +73,11 @@ public final class MiddlePanel extends JPanel {
     }
 
     /**
-     * Adds a listener to the add/sort button.
-     * @param listener the listener to be attached to the button.
-     */
-    public void addListenerToFolderButton(final ActionListener listener) {
-        chooseFolderBtn.addActionListener(listener);
-    }
-
-    /**
      * Used to show the folder selection dialog.
      * @param sortFolder a callback to the controller that starts the sorting function in the model.
      */
     public void showFolderSelectionDialog(final Consumer<String> sortFolder) {
+
         final int result = fileChooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -92,6 +85,18 @@ public final class MiddlePanel extends JPanel {
             pathLabel.setText(fileChooser.getSelectedFile().getAbsolutePath());
             sortFolder.accept(pathLabel.getText());
         }
+    }
+
+    /*=====================
+    * Listener Methods
+    =====================*/
+
+    /**
+     * Adds a listener to the add/sort button.
+     * @param listener the listener to be attached to the button.
+     */
+    public void addListenerToFolderButton(final ActionListener listener) {
+        chooseFolderBtn.addActionListener(listener);
     }
 
     /**
@@ -102,12 +107,16 @@ public final class MiddlePanel extends JPanel {
         clearBtn.addActionListener(listener);
     }
 
+    /*=================
+    * Setters
+    =================*/
+
     /**
      * Used to clear the path label and reset the add/sort button.
      */
     public void clearSelection() {
         resetPathColor();
-        pathLabel.setText(AppConfig.NO_FOLDER_SELECTED);
+        pathLabel.setText(AppConfig.CHOOSE_FOLDER);
     }
 
     /**
@@ -121,6 +130,6 @@ public final class MiddlePanel extends JPanel {
      * Resets the color of the pathLabel.
      */
     public void resetPathColor() {
-        pathLabel.setForeground(Color.LIGHT_GRAY);
+        pathLabel.setForeground(AppConfig.CLR_PATH_LABEL);
     }
 }
