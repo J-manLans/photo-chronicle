@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -47,7 +46,7 @@ public final class InfoDialogTest {
     private InfoDialog infoDialog;
     private Class<?> infoDialogClass;
     private final List<String> expectedFields = new ArrayList<>(List.of(
-        "gbc", "infoDialogPanel", "infoMessage", "infoCloseBtn"
+        "gbc", "infoMessage", "infoCloseBtn"
     ));
 
     /*=====================
@@ -235,22 +234,11 @@ public final class InfoDialogTest {
     }
 
     /**
-     * Test to ensure that the infoDialogPanel instance field is an instance of {@link JPanel}.
-     */
-    @Test
-    void shouldPassIfInfoDialogPanelIsJPanel() {
-        assertEquals(JPanel.class, getField("infoDialogPanel").getType());
-    }
-
-    /**
-     * Test to ensure that the infoDialogPanel has a GridBagLayout.
+     * Test to ensure that the infoDialog has a GridBagLayout.
      */
     @Test
     void shouldHaveGridBagLayout() {
-        assertEquals(
-            GridBagLayout.class,
-            ((JPanel) getComponent("infoDialogPanel")).getLayout().getClass()
-        );
+        assertEquals(GridBagLayout.class, infoDialog.getContentPane().getLayout().getClass());
     }
 
     /**
@@ -295,27 +283,19 @@ public final class InfoDialogTest {
     }
 
     /**
-     * Checks that the infoMessage label is added to the info panel.
+     * Checks that the infoMessage label is added to the info dialog.
      */
     @Test
-    void shouldPassIfInfoPanelContainsInfoMessage() {
-        assertSame(getComponent("infoMessage"), (JLabel) getComponentFromInfoPanel(JLabel.class));
+    void shouldPassIfInfoDialogContainsInfoMessage() {
+        assertSame(getComponent("infoMessage"), (JLabel) getComponentFromInfoDialog(JLabel.class));
     }
 
     /**
-     * Checks that the infoCloseBtn is added to the info panel.
+     * Checks that the infoCloseBtn is added to the info dialog.
      */
     @Test
-    void shouldPassIfInfoPanelContainsInfoCloseBtn() {
-        assertSame(getComponent("infoCloseBtn"), (JButton) getComponentFromInfoPanel(JButton.class));
-    }
-
-    /**
-     * Checks that the infoDialogPanel is added to the info dialog.
-     */
-    @Test
-    void shouldPassIfInfoPanelIsAddedToInfoDialog() {
-        assertSame(getComponent("infoDialogPanel"), infoDialog.getContentPane().getComponent(0));
+    void shouldPassIfInfoDialogContainsInfoCloseBtn() {
+        assertSame(getComponent("infoCloseBtn"), (JButton) getComponentFromInfoDialog(JButton.class));
     }
 
     /*======================
@@ -431,8 +411,8 @@ public final class InfoDialogTest {
         }
     }
 
-    private Component getComponentFromInfoPanel(final Class<?> clazz) {
-        return Arrays.stream(((JPanel) getComponent("infoDialogPanel")).getComponents())
+    private Component getComponentFromInfoDialog(final Class<?> clazz) {
+        return Arrays.stream(infoDialog.getContentPane().getComponents())
         .filter(component -> component.getClass() == clazz)
         .findFirst()
         .orElse(null);
