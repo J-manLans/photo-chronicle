@@ -170,3 +170,151 @@ Second, a reset method will be implemented to clear the map that stores informat
 The third step will be to detect if the files in the folder contain EXIF metadata and have the **DateTimeOriginal** tag present, if so, they will be added to the `eligibleFiles` map mentioned above. To do this the Java NIO library will be utilized to create a stream over the directory content and filter out each file that is not a directory and then check them in a dedicated `detectEXIFMetadataFiles` method. This method extracts the metadata with the help of the metadata-extractor library, and if the `ExifSubIFDDirectory` contains an original date, it is converted into a `LocalDate` object. The file is then organized in the eligibleFiles map by year and month, creating entries as needed before storing the file name.
 
 And finally, the folders need to be created, and the images moved to their correct places. This will be achieved by calling the `forEach` method on the `eligibleFiles` map and for each year create a year path that builds upon the basepath set up at the beginning of the method. Then inside the `forEach` the same thing will be repeated on the months part of the map which also is a map consisting of an integer which represent the number of the month and a list of strings which represent the filenames for the images that belong to that month. Here the month path will be built upon the year path created one step above and then converted to a file object. Next, the method need to check whether the necessary directories exist, creating them if needed using `mkdirs`, which ensures that any missing parent folders are also created. Once the folder structure is in place, the process should continue with moving the files to their designated locations. The `forEach` method will be called on the files list within each month’s map, and for each file, the `moveFile` method is invoked with its original path and the corresponding destination inside the newly created month folder. The `moveFile` method then attempts to move the file using `Files.move`. If successful, the count of sorted files in the statistics array is incremented. If an error occurs, it is instead counted as an unsorted file.
+
+## Discussion
+### Purpose Fulfillment
+The primary purpose of this project was to carry out a collaborative development process, in part by employing a **Kanban board** containing information about the project and the conventions used, and where new features to be developed may be added as task cards. The purpose was also to use the **Feature Branch Workflow** in conjunction with the **Kanban board**, where each new feature was to be created in a separate feature branch, and once completed, the developer could issue a **Pull Request** allowing the feature to be reviewed before merged into the `master` branch. Additionally, the aim of the project was also to perform development while following the principles of **Test-Driven Development (TDD)**, where a failing test is added before the implementation of any code.
+
+All the concrete goals of the collaboration aspects have been successfully fulfilled by first setting up a **Kanban board** at [Trello](https://Trello.com/). A manifest was then created containing information about the project, the Git workflow used, code conventions for the codebase and test units, as well as guidelines for tasks, peer reviewing and documentation, properly serving as the place where new members can be introduced to the project.
+
+The usage of the **Kanban board** has also been employed correctly by having new tasks created as cards and added to the **Backlog** list of the board, allowing a developer to start working on a feature by joining the card containing the new feature and moving it into the **In Progress** list. Once finished, feature cards have also been correctly moved to the **Review** list where the developer has left the card, allowing it to be reviewed by another member.
+
+After having been reviewed, if the reviewer has felt changes had to be performed to the feature, the reviewer has also properly left the card and moved it back into the **Backlog**, allowing the feature to be worked on again by moving it back into the **In Progress** list. If the developer has felt satisfied with a new feature while reviewing, the associated card has also be accurately moved into the **Completed** list, while the reviewer has also stayed with the card.
+
+The project has also been successfully developed using a **Test-Driven Development** approach by creating tests before implementing any code, according to the red-green-refactor principle. Tests were first created prior to working on code implementations, and only once a test had produced a failing result was the implementation allowed to be worked on. Then once the implementation passed the test, the developer could refactor both the codebase and test units.
+
+The test units also include a variety of tests to confirm things like the presence of fields and methods, the correct access modifiers and return types, and making sure the methods perform the correct functionality. The test units do also include a variety of different assertions, both positive ones such as assertTrue() and assertEqual(), but also negative tests using assertions like assertFalse() and assertDoesNotThrow().
+
+Additionally, the project has also been adhering to the **Feature Branch Workflow** by having each task being worked on in a feature branch branched off of the `master` branch.
+Each new feature branch has also been properly named after the title of the feature card when work have started on a new feature. Once finished, a new feature has been correctly pushed to Bitbucket where a **Pull Request** was created allowing the new feature to be reviewed before being merged into the `master` branch.
+
+All of the goals of the general aspect have also been successfully fulfilled. Maven has been used as the build system, and may be used to confirm all tests are successful:
+````
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.dt042g.photochronicle.controller.ChronicleControllerTest
+[INFO] Tests run: 32, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.045 s -- in com.dt042g.photochronicle.controller.ChronicleControllerTest
+[INFO] Running com.dt042g.photochronicle.MainTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.dt042g.photochronicle.MainTest
+[INFO] Running com.dt042g.photochronicle.model.ChronicleModelTest
+[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.260 s -- in com.dt042g.photochronicle.model.ChronicleModelTest
+[INFO] Running com.dt042g.photochronicle.support.AppConfigTest
+[INFO] Tests run: 34, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in com.dt042g.photochronicle.support.AppConfigTest
+[INFO] Running com.dt042g.photochronicle.view.BottomPanelTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.dt042g.photochronicle.view.BottomPanelTest
+[INFO] Running com.dt042g.photochronicle.view.InfoDialogTest
+[INFO] Tests run: 38, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.155 s -- in com.dt042g.photochronicle.view.InfoDialogTest
+[INFO] Running com.dt042g.photochronicle.view.MainFrameTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.076 s -- in com.dt042g.photochronicle.view.MainFrameTest
+[INFO] Running com.dt042g.photochronicle.view.MiddlePanelTest
+[INFO] Tests run: 36, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.998 s -- in com.dt042g.photochronicle.view.MiddlePanelTest
+[INFO] Running com.dt042g.photochronicle.view.TopPanelTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.dt042g.photochronicle.view.TopPanelTest
+[INFO] 
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 218, Failures: 0, Errors: 0, Skipped: 0
+````
+
+Maven can also be used to make sure a **JAR** file is successfully created for the application with the command `mvn clean verify`:
+````
+[INFO] --- jar:3.3.0:jar (default-jar) @ photo-chronicle ---
+[INFO] Building jar: D:\workspace\DT042G\group_6_vt25\target\photo-chronicle-1.0.0.jar
+[INFO] 
+[INFO] --- shade:3.6.0:shade (default) @ photo-chronicle ---
+[INFO] Including com.drewnoakes:metadata-extractor:jar:2.19.0 in the shaded jar.
+[INFO] Including com.adobe.xmp:xmpcore:jar:6.1.11 in the shaded jar.
+[INFO] Dependency-reduced POM written at: D:\workspace\DT042G\group_6_vt25\dependency-reduced-pom.xml
+[INFO] Replacing original artifact with shaded artifact.
+[INFO] Replacing D:\workspace\DT042G\group_6_vt25\target\photo-chronicle-1.0.0.jar with D:\workspace\DT042G\group_6_vt25\target\photo-chronicle-1.0.0-shaded.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.627 s
+[INFO] Finished at: 2025-03-26T14:28:24+01:00
+[INFO] ------------------------------------------------------------------------ 
+````
+
+Furthermore, Maven can also be used to confirm that both the codebase and unit tests have been correctly documented by using `mvn checkstyle:check`:
+````
+[INFO] You have 0 Checkstyle violations.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.956 s
+````
+
+Finally, the goals of the application itself, **PhotoChronicle**, have also been successfully met. All functionality of the application pertaining to setup and updates of **Swing** components of the graphic interface have been placed on the Event Dispatch Thread (EDT) by invoking the method `invokeLater()` of the class `SwingUtilities`.
+
+The application does also correctly adhere to the model-view-controller (MVC) pattern, where only the controller class, `ChronicleController`, is aware of the model class, `ChronicleModel`, and the classes of the view. Thereby, the model and view classes are completely unaware of each other, as well as of the controller. Additionally, a package for each part of the pattern was also added, `mode`, `view` and `controller`, allowing model, view and controller classes to be placed in their respective packages, both for the codebase and the tests.
+
+The project has successfully resulted in the development of an application which correctly allows the user to select a folder, whereupon any images within the folder containing **EXIF** metadata and the **DateTimeOriginal** tag successfully creates directories for each year and month present and proceeds to sort the images into the correct folders.
+
+Overall, the project has been successful in demonstrating a collaborative development by combining the usage of a **Kanban board** together with **Feature Branch Workflow**, as well as development by following the principles of **Test-Driven Development**.
+
+### Alternative Approaches
+An alternative to the current implementation of the application would be to have the sorting process being done in a worker thread. This would require the helper method `sortFolder` of the `ChonicleController` to be changed to dispatch the sorting inside of a new thread, for example:
+````java
+private void sortFolder(final String path) {
+    new Thread (() -> {
+        chronicleModel.setPath(path);
+        chronicleModel.sortFolder(this::displayError, this::displayInformation);
+    }).start();
+}
+````
+This change would result in the issue that the user would have the ability to select a new folder for processing before sorting of the last folder has completed. To deal with the problem, a solution would be to disable the button used to select a folder for the duration of the process. This would also require an additional callback to be passed from the controller to the model so the model can signal the controller when it is done processing, allowing the controller to enable the selection button again.
+
+The solution of a worker thread was deemed unnecessary as the process of sorting a folder is a relatively quick process. With the current implementation, the button to select a folder is blocked until the sorting method has finished, preventing the user from selecting a new folder before the last one has been completed.
+
+Another alternative, should more time have been available, would be to have the sorting functionality moved into a class of its own, giving the `ChronicleModel` class the responsibility of creating a new thread and then dispatching the sorting using the new class. In this case, the new class would be responsible for signaling the controller when the process is done via a callback, allowing the controller to enable the selection button.
+
+Currently the application only uses an array with the English names of the months when new folders are created. An alternative would be to use the method `getMonths()` of the class `DateFormatSymbols` which would provide names of the months in an array using the current locale of the environment that the application is running on. Though, as the current state of the application only provides an interface in English, it was deemed fit to have the application also use English names of the months.
+
+An alternative to the current implementation of the storage of files eligible to be sorted would be to create a separate class keeping track of the data of each class. For example, such a class could look like:
+````java
+public final class EligibleFile {
+    private final int year;
+    private final int month;
+    private final String filename;
+
+    public EligibleFile(final int year, final int month, final String filename) {
+        this.year = year;
+        this.month = month;
+        this.filename = filename;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+}
+````
+Instead of using a class, this entity could also be a `record`, provided no additional functionality is needed in the class:
+````java
+public record EligibleFile(int year, int month, String filename) {
+}
+````
+Using this solution would allow the collection of eligible files to be stored as a single collection, e.g., `List<EligibleFile>`, which may have some benefits, such as a cleaner iteration when creating subfolders and moving files. However, unlike the original solution, the years and months are in this case not stored uniquely. For example, if two files share the same year, then both of the `EligibleFile` representing these two files would store the same year, which may be undesirable.
+
+Conversely, the implemented solution avoids this by first having a `Map` where the key represents the year, thus allowing a year to be present only once, as keys of the `Map` class must be unique. Similarly, the value of each year is another `Map` where, in this case, the key represents a month, giving each year the ability to store every month uniquely. Finally, each month of a year then stores a `List` of files of the year and month.
+
+The application currently only supports sorting files containing the **DateTimeOriginal** tag of **EXIF** metadata, which was the original target of the project as stated in the project information. Due to time constraints, support for reading additional metadata formats and media files were not implemented. However, with the basic sorting functionality of the application implemented, support for additional metadata formats, such as **IPTC** and **XMP**, could be added to the application, allowing it to also support additional types of media files, like video and audio files.
+
+The biggest bottleneck while working with the **Kanban board** have been the draft labels, which require members to review cards before work on a new feature may be started. An alternative would have been to postpone the review of cards until a task have been completed and moved into the **Review** list. This would likely work well with small tasks, such as ones dealing with issues, and in particular within smaller projects. However, for larger features it seems necessary to review the cards before a member can start working on the feature to ensure time is not wasted on an unwanted or incomplete feature.
+
+Furthermore, the project was also hampered somewhat by a large number of small tasks, which elevated the issue with the draft labels. In order to make the workflow more efficient it would probably have been better to combine multiple smaller tasks into larger ones. This would have reduced the total number of tasks, and as a result shifted the focus on making and reviewing tasks into working on the tasks.
+
+## Personal Reflections
+In this project we have been collaborating on the development of an application by combining the usage of a **Kanban board** together with the **Feature Branch Workflow**. The project has resulted in the development of the **Photo Chronicle** application using **Test-Driven Development**. The application correctly performs the desired functionality as stated in the project information, allowing files with **EXIF** metadata and **DateTimeOriginal** tags to be sorted into subfolders after year and month.
+
+Apart from the development of the application, some alternative solutions have also been considered. For example, the implementation of the application itself such as different ways of implementing the model part which is responsible for the sorting functionality.
+
+This project has given useful experience in multiple areas, for example in carrying out the development of an application in a group setting which in particular has been both a very useful and interesting experience. Working with a **Kanban board** together with the **Feature Branch Workflow** has also been an interesting experience, especially having development of a new feature being done in feature branches and dealing with pull request.
