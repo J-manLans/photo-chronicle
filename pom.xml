@@ -7,7 +7,7 @@
     <!-- Basic project information -->
     <groupId>com.dt042g</groupId>
     <artifactId>photo-chronicle</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>PhotoChronicle</name>
     <description>
         PhotoChronicle is a tool that organizes images into folders by year and month based on their metadata.
@@ -93,17 +93,12 @@
             <artifactId>metadata-extractor</artifactId>
             <version>2.19.0</version>
         </dependency>
-        <dependency> <!-- https://mvnrepository.com/artifact/org.fusesource.jansi/jansi -->
-            <groupId>org.fusesource.jansi</groupId>
-            <artifactId>jansi</artifactId>
-            <version>2.4.1</version>
-        </dependency>
     </dependencies>
 
     <profiles>
         <profile>
             <activation><!-- NOTE: set to false for production builds -->
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
 
             <id>developer</id>
