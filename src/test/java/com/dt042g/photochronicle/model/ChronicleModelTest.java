@@ -16,6 +16,7 @@ import java.lang.reflect.Type;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.AclEntry;
@@ -30,7 +31,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.dt042g.photochronicle.support.AppConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -40,6 +40,8 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import com.dt042g.photochronicle.support.AppConfig;
 
 /**
  * Unit tests for {@link ChronicleModel}, ensuring design integrity and correct functionality.
@@ -206,7 +208,7 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldThrowForNullFolder() {
-        assertThrows(IllegalArgumentException.class, () -> model.verifyAccess());
+        assertThrows(NoSuchFileException.class, () -> model.verifyAccess());
     }
 
     /**
@@ -299,7 +301,8 @@ public class ChronicleModelTest {
      */
     @Test
     void shouldHandleEmptyPathInSortFolderMethod() {
-        assertThrows(IllegalArgumentException.class, () -> performSortingTest(null));
+        model.nullifyPath();
+        assertEquals(AppConfig.GENERAL_ERROR, getMessageFromSortMethod());
     }
 
     /**
