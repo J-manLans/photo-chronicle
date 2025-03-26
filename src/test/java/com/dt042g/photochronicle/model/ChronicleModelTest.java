@@ -65,9 +65,6 @@ public class ChronicleModelTest {
             2024, Map.of(8, List.of("003.jpg")),
             2023, Map.of(6, List.of("004.jpg", "005.jpg"))
     );
-    private final String pathToEmptyFolder  = Paths.get(
-            System.getProperty("user.dir"), "src", "test", "resources", "testEmpty"
-    ).toString();
 
     /*====================
     * Setup
@@ -262,8 +259,8 @@ public class ChronicleModelTest {
      * Test to ensure the correct error message is displayed when an empty folder is sorted.
      */
     @Test
-    void shouldHaveCorrectInformationMessageForEmptyFolder() {
-        model.setPath(pathToEmptyFolder);
+    void shouldHaveCorrectInformationMessageForFolderWithInvalidFiles() {
+        model.setPath(pathToTestFolder);
         assertEquals(AppConfig.NO_FILES_SORTED, getMessageFromSortMethod());
     }
 
