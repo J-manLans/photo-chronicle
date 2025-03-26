@@ -40,12 +40,6 @@ public final class AppConfig {
     /** String to be displayed when no folder has been selected. */
     public static final String CHOOSE_FOLDER = "Choose image folder";
 
-    /** Label of folder button when its adding folder. */
-    public static final String ADD_FOLDER_BUTTON = "Add Folder";
-
-    /** Label of folder button when its sorting folder. */
-    public static final String SORT_FOLDER_BUTTON = "Sort Folder";
-
     /* ===== Numbers ===== */
 
     /** An integer that defines hgap or vgap  between components in a panel that has FlowLayout. */
@@ -57,10 +51,10 @@ public final class AppConfig {
     /** An integer that defines the size of normal text. */
     public static final int TEXT_SIZE_NORMAL = 14;
 
-    /** The with of the panel that holds the pathLabel and clearBtn. */
+    /** The width of the panel that holds the pathLabel and clearBtn. */
     public static final int PADDING_FOR_PATH_LABEL = 10;
 
-    /** The with of the panel that holds the pathLabel and clearBtn. */
+    /** The width of the panel that holds the pathLabel and clearBtn. */
     public static final int FOLDER_PATH_WIDTH = 300;
 
     /* ===== Colors ===== */
@@ -86,7 +80,16 @@ public final class AppConfig {
     * Model
     =========================*/
 
+    /** An array containing the names of all the month of a year. */
+    public static final String[] MONTHS = {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+    };
+
     /** A general error message used if something that shouldn't happen happens. */
     public static final String GENERAL_ERROR = "<html>Something went wrong when trying to access the folder. We are"
     + " sorry for this and will look into the issue as soon as possible<html>";
+
+    /** Error message when no files have been sorted. */
+    public static final String NO_FILES_SORTED = "No eligible files for sorting were found.";
 }
