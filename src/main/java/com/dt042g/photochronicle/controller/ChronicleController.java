@@ -40,13 +40,17 @@ public final class ChronicleController {
      */
     public void initialize() {
         initializeListeners();
-        mainFrame.setVisible(true);
+        showMainFrame();
     }
+
+    /*=====================
+    * Helper Methods
+    =====================*/
 
     /**
      * Initialize listeners to the application components.
      */
-    public void initializeListeners() {
+    void initializeListeners() {
         bottomPanel.addInfoButtonListener(e -> infoDialog.showDialog());
         infoDialog.addInfoCloseBtnListener(e -> infoDialog.hideDialog());
 
@@ -54,63 +58,18 @@ public final class ChronicleController {
         middlePanel.addListenerToClearButton(event -> middlePanel.clearSelection());
     }
 
-    /*=====================
-    * Getters
-    =====================*/
-
     /**
-     * Returns the Mainframe so test classes can set up test environments.
-     * @return The MainFrame.
+     * Shows the main frame.
      */
-    public MainFrame getMainFrame() {
-        return mainFrame;
+    void showMainFrame() {
+        mainFrame.setVisible(true);
     }
 
     /**
-     * Returns the TopPanel so test classes can set up test environments.
-     * @return The TopPanel.
+     * Sets the path in the model and start its sortFolder method.
+     * @param path The path to the user selected folder as a string.
      */
-    public TopPanel getTopPanel() {
-        return topPanel;
-    }
-
-    /**
-     * Returns the MiddlePanel so test classes can set up test environments.
-     * @return The MiddlePanel.
-     */
-    public MiddlePanel getMiddlePanel() {
-        return middlePanel;
-    }
-
-    /**
-     * Returns the BottomPanel so test classes can set up test environments.
-     * @return The BottomPanel.
-     */
-    public BottomPanel getBottomPanel() {
-        return bottomPanel;
-    }
-
-    /**
-     * Returns the InfoDialog so test classes can set up test environments.
-     * @return The InfoDialog.
-     */
-    public InfoDialog getInfoDialog() {
-        return infoDialog;
-    }
-
-    /**
-     * Returns the ChronicleModel so test classes can set up test environments.
-     * @return The ChronicleModel.
-     */
-    public ChronicleModel getChronicleModel() {
-        return chronicleModel;
-    }
-
-    /*=====================
-    * Helper Methods
-    =====================*/
-
-    private void sortFolder(final String path) {
+    void sortFolder(final String path) {
         chronicleModel.setPath(path);
         chronicleModel.sortFolder(this::displayError, this::displayInformation);
     }
