@@ -87,7 +87,8 @@ public final class ChronicleModel {
                     .filter(file -> !Files.isDirectory(file))
                     .forEach(file -> detectEXIFMetadataFiles(file.toFile()));
         } catch (final IOException e) {
-            displayError.accept(e.getMessage());
+            System.err.println(e);
+            displayError.accept("Failed to process the directory. Please check the path and try again.");
             return;
         }
 
@@ -129,7 +130,7 @@ public final class ChronicleModel {
      */
     void verifyAccess() throws AccessDeniedException, NoSuchFileException, NotDirectoryException {
         if (path == null) {
-            throw new IllegalArgumentException(AppConfig.GENERAL_ERROR);
+            throw new NoSuchFileException(AppConfig.GENERAL_ERROR);
         } else if (!Files.exists(path)) {
             throw new NoSuchFileException(AppConfig.GENERAL_ERROR);
         } else if (!Files.isDirectory(path)) {
