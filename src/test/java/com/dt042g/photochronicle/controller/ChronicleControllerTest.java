@@ -319,9 +319,8 @@ public class ChronicleControllerTest {
 
         runOnEDT(() -> {
             controller.sortFolder(pathToTestFolder);
-            assertTrue(((JLabel) getComponent(infoDialog, "infoMessage")).getText().contains(
-                "<html>Sorting of directory "
-            ));
+            assertEquals(AppConfig.NO_FILES_SORTED,
+                    ((JLabel) getComponent(infoDialog, "infoMessage")).getText());
             infoDialog.setVisible(false);
         });
     }
