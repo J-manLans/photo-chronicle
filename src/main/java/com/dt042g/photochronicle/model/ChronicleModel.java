@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -92,7 +93,19 @@ public final class ChronicleModel {
 
         moveEligibleFiles();
 
-        final String msgStatistics = "<html>Sorting of directory " + path + " has finished.<br>Statistics:<br>"
+        if (statistics[StatsIndex.sortedFiles.ordinal()] == 0) {
+            displayError.accept(AppConfig.NO_FILES_SORTED);
+        } else {
+            displayInformation.accept(getMessageStatistics());
+        }
+    }
+
+    /**
+     * Used to create and return a message with the current statistics.
+     * @return A message with the current statistics.
+     */
+    String getMessageStatistics() {
+        return "<html>Sorting of directory " + path + " has finished.<br>Statistics:<br>"
                 + "Number of files sorted: "
                 + statistics[StatsIndex.sortedFiles.ordinal()] + "<br>"
                 + "Number of files which couldn't be sorted: "
@@ -102,8 +115,6 @@ public final class ChronicleModel {
                 + "Number of invalid files: "
                 + statistics[StatsIndex.invalidFiles.ordinal()] + "<br>"
                 + "</html>";
-
-        displayInformation.accept(msgStatistics);
     }
 
     /**
@@ -157,12 +168,19 @@ public final class ChronicleModel {
 
             if (exifSubIFDDirectory == null) {
                 statistics[StatsIndex.invalidFiles.ordinal()]++;
-            } else {
-                final LocalDate date = exifSubIFDDirectory.getDateOriginal()
-                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-                addEligibleFile(file.getName(), date.getYear(), date.getMonthValue());
+                return;
             }
+
+            final Date originalDate = exifSubIFDDirectory.getDateOriginal();
+
+            if (originalDate == null) {
+                statistics[StatsIndex.invalidFiles.ordinal()]++;
+                return;
+            }
+
+            final LocalDate date = originalDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            addEligibleFile(file.getName(), date.getYear(), date.getMonthValue());
         } catch (ImageProcessingException | IOException e) {
             statistics[StatsIndex.invalidFiles.ordinal()]++;
         }
@@ -183,36 +201,24 @@ public final class ChronicleModel {
     }
 
     private void moveEligibleFiles() {
-        final String[] nameOfMonths = {
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-        };
+        Path basePath = Paths.get(path.toString());
 
         eligibleFiles.forEach((year, months) -> {
-            final String directoryYear = Paths.get(path.toString(), year.toString()).toString();
-            final File fileYear = new File(directoryYear);
+            Path directoryYear = basePath.resolve(year.toString());
 
-            if (!fileYear.exists()) {
-                if (!fileYear.mkdirs()) {
+            months.forEach((month, files) -> {
+                final String strMonth = String.format("%02d-%s", month, AppConfig.MONTHS[month - 1]);
+                Path directoryMonth = directoryYear.resolve(strMonth);
+                final File fileMonth = directoryMonth.toFile();
+
+                if (!fileMonth.exists() && !fileMonth.mkdirs()) {
                     statistics[StatsIndex.directoryFailures.ordinal()]++;
                 } else {
-                    months.forEach((month, files) -> {
-                        final String strMonth = String.format("%02d-%s", month, nameOfMonths[month - 1]);
-                        final String directoryMonth = Paths.get(directoryYear, strMonth).toString();
-                        final File fileMonth = new File(directoryMonth);
-
-                        if (!fileMonth.exists()) {
-                            if (!fileMonth.mkdirs()) {
-                                statistics[StatsIndex.directoryFailures.ordinal()]++;
-                            } else {
-                                files.forEach((file) ->
-                                        moveFile(Paths.get(path.toString(), file),
-                                                Paths.get(fileMonth.toString(), file)));
-                            }
-                        }
-                    });
+                    files.forEach((file) -> moveFile(
+                            Paths.get(path.toString(), file),
+                            Paths.get(fileMonth.toString(), file)));
                 }
-            }
+            });
         });
     }
 
