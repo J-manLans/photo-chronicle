@@ -276,7 +276,6 @@ public class ChronicleModelTest {
         final int invalidFiles = 2;
 
         model.setPath(pathToSort);
-
         int[] statistics = (int[]) getComponent("statistics");
         Class<?> statsIndex = model.getClass().getDeclaredClasses()[0];
 
