@@ -180,6 +180,16 @@ public class ChronicleModelTest {
     }
 
     /**
+     * Ensures that the handleError method executes the runnable.
+     */
+    @Test
+    void shouldExecuteTheRunnableThroughHandleErrorMethod() {
+        int[] cnt = new int[1];
+        model.handleError(new Exception(), () -> cnt[0]++);
+        assertEquals(1, cnt[0]);
+    }
+
+    /**
      * Tests that the sortFolder method have a Consumer<String> parameter and nothing else.
      * @throws NoSuchMethodException if the sortFolder method is not present.
      */
