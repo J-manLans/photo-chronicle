@@ -10,9 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,15 +45,15 @@ import com.dt042g.photochronicle.support.AppConfig;
  * @author Joel Lansgren, Daniel Berg
  */
 public final class ChronicleModel {
-    private Path path;
-    private final Map<Integer, Map<Integer, List<String>>> eligibleFiles = new HashMap<>();
-
     private enum StatsIndex {
         sortedFiles,
         unsortedFiles,
         directoryFailures,
         invalidFiles
     }
+    private Path path;
+
+    private final Map<Integer, Map<Integer, List<String>>> eligibleFiles = new HashMap<>();
 
     private final int[] statistics = new int[StatsIndex.values().length];
 
@@ -75,8 +75,7 @@ public final class ChronicleModel {
         try {
             verifyAccess();
         } catch (AccessDeniedException | NoSuchFileException | NotDirectoryException e) {
-            System.err.println(e);
-            displayError.accept(e.getMessage());
+            handleError(e, () -> displayError.accept(e.getMessage()));
             return;
         }
 
@@ -87,12 +86,12 @@ public final class ChronicleModel {
                     .filter(file -> !Files.isDirectory(file))
                     .forEach(file -> detectEXIFMetadataFiles(file.toFile()));
         } catch (final IOException e) {
-            System.err.println(e);
-            displayError.accept("Failed to process the directory. Please check the path and try again.");
+            handleError(e, () ->
+                displayError.accept("Failed to process the directory. Please check the path and try again."));
             return;
         }
 
-        moveEligibleFiles();
+        sortEligibleFiles();
 
         if (statistics[StatsIndex.sortedFiles.ordinal()] == 0) {
             displayError.accept(AppConfig.NO_FILES_SORTED);
@@ -106,7 +105,7 @@ public final class ChronicleModel {
      * @return A message with the current statistics.
      */
     String getMessageStatistics() {
-        return "<html>Sorting of directory " + path + " has finished.<br>Statistics:<br>"
+        return "<html>Sorting of directory:<br>" + path + "<br>Has finished. Statistics:<br>"
                 + "Number of files sorted: "
                 + statistics[StatsIndex.sortedFiles.ordinal()] + "<br>"
                 + "Number of files which couldn't be sorted: "
@@ -161,6 +160,18 @@ public final class ChronicleModel {
         path = null;
     }
 
+    /**
+     * Handles an exception by printing its stack trace and executing a fallback action.
+     * @param e The exception that was thrown and needs to be handled. The exception's stack trace
+     * will be printed to the standard error stream.
+     * @param action A {@link Runnable} that contains the fallback action to be executed when the exception
+     * occurs. This can be any task that should be performed after handling the exception.
+     */
+    void handleError(Exception e, Runnable action) {
+        e.printStackTrace();
+        action.run();
+    }
+
     private void detectEXIFMetadataFiles(final File file) {
         try {
             final Metadata metadata = ImageMetadataReader.readMetadata(file);
@@ -183,7 +194,7 @@ public final class ChronicleModel {
 
             addEligibleFile(file.getName(), date.getYear(), date.getMonthValue());
         } catch (ImageProcessingException | IOException e) {
-            statistics[StatsIndex.invalidFiles.ordinal()]++;
+            handleError(e, () -> statistics[StatsIndex.invalidFiles.ordinal()]++);
         }
     }
 
@@ -201,7 +212,7 @@ public final class ChronicleModel {
         eligibleFiles.get(year).get(month).add(file);
     }
 
-    private void moveEligibleFiles() {
+    private void sortEligibleFiles() {
         Path basePath = Paths.get(path.toString());
 
         eligibleFiles.forEach((year, months) -> {
@@ -216,8 +227,8 @@ public final class ChronicleModel {
                     statistics[StatsIndex.directoryFailures.ordinal()]++;
                 } else {
                     files.forEach((file) -> moveFile(
-                            Paths.get(path.toString(), file),
-                            Paths.get(fileMonth.toString(), file)));
+                        Paths.get(path.toString(), file),
+                        Paths.get(fileMonth.toString(), file)));
                 }
             });
         });
@@ -228,7 +239,7 @@ public final class ChronicleModel {
             Files.move(source, destination);
             statistics[StatsIndex.sortedFiles.ordinal()]++;
         } catch (final IOException e) {
-            statistics[StatsIndex.unsortedFiles.ordinal()]++;
+            handleError(e, () -> statistics[StatsIndex.unsortedFiles.ordinal()]++);
         }
     }
 
